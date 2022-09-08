@@ -1,0 +1,2 @@
+1) Need to change buffer each time window(OR TAB) changes,
+2) Be able to detect locale so I can log any language written and not just english
