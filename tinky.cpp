@@ -71,6 +71,8 @@ int main(int ac, char **av)
 	long int err;
 	if (usage(ac, av))
 	{
+		if (assign_scmanager())
+			return (1);
 		if (!CloseServiceHandle(scManager))
 		{
 			printf("CloseServiceHandle failed error (%ld)\n", GetLastError());
