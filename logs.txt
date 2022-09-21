@@ -10,3 +10,48 @@
 ***ClipBoard Change*** : *بسبسنبيسبنيسشخبهشتبهنسشب*
 
 [20-09-2022 00:08:55] - 'MotherSky/Tinky - Google Chrome' - بسبسنبيسبنيسشخبهشتبهنسشب[CTRL]
+[21-09-2022 06:29:23] - 'C:\WINDOWS\system32\cmd.exe' - q
+[21-09-2022 06:29:27] - 'C:\WINDOWS\system32\cmd.exe - winkey.exe' - we
+[21-09-2022 06:29:35] - 'winkey.cpp - Tinky - Visual Studio Code' - [CTRL]cli
+[21-09-2022 06:29:43] - 'C:\WINDOWS\system32\cmd.exe - winkey.exe' - [F1][F2][F3][F4][F5][F6][F7][F8]
+[21-09-2022 06:29:54] - 'New Tab - Google Chrome' - q[DEL][CTRL]
+[21-09-2022 06:30:10] - 'C:\WINDOWS\system32\cmd.exe - winkey.exe' - [FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN]
+[21-09-2022 06:30:12] - 'C:\WINDOWS\system32\cmd.exe - winkey.exe' - [FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN][FN]
+
+
+
+
+
+***ClipBoard Change*** : *sequence*
+
+[21-09-2022 06:37:54] - 'C:\WINDOWS\system32\cmd.exe' - [PRINT SCREEN]
+
+***ClipBoard Change*** : *sequence*
+
+[21-09-2022 06:37:56] - 'Select C:\WINDOWS\system32\cmd.exe - winkey.exe' - 
+
+
+
+***ClipBoard Change*** : *instantiation *
+
+
+[21-09-2022 06:39:12] - 'C:\WINDOWS\system32\cmd.exe' - q
+[21-09-2022 06:39:15] - 'C:\WINDOWS\system32\cmd.exe - winkey.exe' - wwqw
+
+***ClipBoard Change*** : *&std::basic_ostream<char,std::char_traits<char>>::operator*
+
+[21-09-2022 06:39:16] - 'Select C:\WINDOWS\system32\cmd.exe - winkey.exe' - 
+
+
+
+***ClipBoard Change*** : **
+
+[21-09-2022 06:41:58] - 'C:\WINDOWS\system32\cmd.exe' - 
+
+[21-09-2022 06:42:00] - 'C:\WINDOWS\system32\cmd.exe - winkey.exe' - qw
+
+***ClipBoard Change*** : *to*
+
+[21-09-2022 06:42:19] - 'winkey.cpp - Tinky - Visual Studio Code' - [CTRL][CTRL][CTRL][CTRL]
+
+

