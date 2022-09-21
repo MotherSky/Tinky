@@ -52,6 +52,6 @@
 
 ***ClipBoard Change*** : *to*
 
-[21-09-2022 06:42:19] - 'winkey.cpp - Tinky - Visual Studio Code' - [CTRL][CTRL][CTRL][CTRL]
+[21-09-2022 06:42:19] - 'winkey.cpp - Tinky - Visual Studio Code' - [CTRL][CTRL][CTRL][CTRL].
 
 
