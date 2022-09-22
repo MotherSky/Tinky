@@ -70,7 +70,7 @@ int assign_scmanager()
 
 // Create and install service tinky --- 
 
-int install(char *path)
+int install_sc(char *path)
 {
 	SC_HANDLE scService = OpenService(scManager, SVCNAME, SERVICE_ALL_ACCESS);
 	if (scService)
@@ -100,9 +100,9 @@ void do_op(int op)
 	GetModuleFileNameW(NULL, full_path, MAX_PATH);
 	wcstombs_s(&n, path, MAX_PATH, full_path, wcslen(full_path));
 	if (op == 1)
-	{
-		install(path);
-	}
+		install_sc(path);
+	else if (op == 2)
+		start_sc(path);
 	else
 		printf("smtg else\n");
 }
