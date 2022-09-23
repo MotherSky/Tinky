@@ -7,6 +7,7 @@
 #pragma comment(lib, "advapi32.lib")
 
 #define SVCNAME TEXT("tinky")
+#define WINKEY TEXT("winkey.exe")
 SC_HANDLE scManager;
 
 
@@ -51,7 +52,7 @@ int usage(int ac, char **av)
 	return (0);
 }
 
-int assign_scmanager()
+int assign_scManager()
 {
 	int err;
 
@@ -62,7 +63,7 @@ int assign_scmanager()
 		if (err == ERROR_ACCESS_DENIED)
 			printf("No Admin rights \n");
 		else
-			printf("OpenSCManager failed error (%ld)\n", GetLastError());
+			printf("OpenscManager failed error (%ld)\n", GetLastError());
 		return (1);
 	}
 	return (0);
@@ -91,6 +92,67 @@ int install_sc(char *path)
 	return (0);
 }
 
+//Start service // need dispatcher before start : https://stackoverflow.com/questions/1640114/startservice-fails-with-error-code-1053
+
+int start_sc(char *path)
+{
+	SC_HANDLE scService = OpenService(scManager, SVCNAME, SERVICE_ALL_ACCESS);
+	if (scService)
+	{
+		const char *args[] = { path };
+		if (!StartService(scService, 1, args))
+		{
+			DWORD err = GetLastError();
+			if (err == ERROR_SERVICE_ALREADY_RUNNING)
+				printf("Service %s already running.\n", SVCNAME);
+			else
+				printf("StartService failed error (%ld)\n", err);
+			if (!CloseServiceHandle(scService))
+				printf("CloseServiceHandle failed error (%ld)\n", GetLastError());
+			return (1);
+		}
+		printf("Service %s started successfully.\n", SVCNAME);
+		if (!CloseServiceHandle(scService))
+			printf("CloseServiceHandle failed error (%ld)\n", GetLastError());
+	}
+	else
+		printf("Service %s is not installed.\n", SVCNAME);
+	return (0);
+}
+
+//delete working well ........
+int delete_sc(void)
+{
+	SC_HANDLE scService = OpenService(scManager, SVCNAME, SERVICE_ALL_ACCESS);
+	if (!scService)
+	{
+		printf("Service %s is not installed.\n", SVCNAME);
+		return (1);
+	}
+	SERVICE_STATUS	status;
+
+	if (QueryServiceStatus(scService, &status))
+	{
+		if (status.dwCurrentState != SERVICE_STOPPED)
+			printf("Service %s not stopped yet\n", SVCNAME);
+		else
+		{
+			if (!DeleteService(scService))
+				printf("DeleteService failed error (%ld)\n", GetLastError());
+			else
+			{
+				printf("Service %s deleted successfully.\n", SVCNAME);
+				return (0);
+			}
+		}
+	}
+	else
+		printf("ControlService failed error (%ld)\n", GetLastError());
+	if (!CloseServiceHandle(scService))
+		printf("CloseServiceHandle failed error (%ld)\n", GetLastError());
+	return (1);
+}
+
 void do_op(int op)
 {
 	WCHAR		full_path[MAX_PATH];
@@ -102,7 +164,19 @@ void do_op(int op)
 	if (op == 1)
 		install_sc(path);
 	else if (op == 2)
+	{
+		if (strchr(path, '\\'))
+			memcpy(strrchr(path, '\\') + 1, WINKEY, strlen(WINKEY) + 1);
+		else
+			memcpy(path, WINKEY, strlen(WINKEY) + 1);
+		printf("=======\n%s\n========\n", path);
 		start_sc(path);
+	}
+	else if (op == 4)
+	{
+		printf("======== delete ======\n");
+		delete_sc();
+	}
 	else
 		printf("smtg else\n");
 }
@@ -114,7 +188,7 @@ int main(int ac, char **av)
 
 	if ((op = usage(ac, av)))
 	{
-		if (assign_scmanager())
+		if (assign_scManager())
 			return (1);
 		do_op(op);
 		if (!CloseServiceHandle(scManager))
