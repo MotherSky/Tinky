@@ -1,0 +1,96 @@
+[08-10-2022 13:12:52] - 'logs.txt - Tinky - Visual Studio Code' - [CTRL][DEL][UP ARROW][UP ARROW]
+git status
+git commit -m [SHIFT]"not s[DEL][DEL][DEL]w saves screen
+[08-10-2022 13:12:55] - 'logs.txt - Tinky - Visual Studio Code' - shot [ALT]	
+
+***ClipBoard Change*** : *[Non-Text Copy]*
+
+[08-10-2022 13:41:42] - 'Developer PowerShell Visual Studio Community 2022 17.3.32825.248' - qw[FN]
+[08-10-2022 13:41:43] - 'winkey.cpp - Tinky - Visual Studio Code' - [ALT]	
+[08-10-2022 13:41:44] - 'Task Switching' - 	
+[08-10-2022 13:41:48] - 'New Tab - Google Chrome' - crea
+[08-10-2022 13:41:50] - 'Search' - paint
+
+[08-10-2022 13:42:24] - 'Untitled - Paint' - [CTRL]
+[08-10-2022 13:42:50] - 'New Tab - Google Chrome' - know dimensui[DEL][DEL][DEL][DEL][DEL][DEL][DEL]isplay dimen[DOWN ARROW]
+
+[08-10-2022 13:42:51] - 'know display dimensions - Google Search - Google Chrome' -  
+[08-10-2022 13:43:26] - 'https://www.google.com/search?q=know+display+dimensions&oq=know+display+dimen&aqs=chrome.1.69i57j33i160l2.9776j1j7&sourceid=chrome&ie=UTF-8 - Google Chrome' - in p[DOWN ARROW][DOWN ARROW]
+
+[08-10-2022 13:43:27] - 'Settings' - [ALT]	
+[08-10-2022 13:43:29] - 'Task Switching' - 	[SHIFT]	
+[08-10-2022 13:43:30] - 'What Is My Screen Resolution | HP® Tech Takes - Google Chrome' - [CTRL]
+[08-10-2022 13:43:31] - 'string - How to convert std::wstring to LPCTSTR in C++? - Stack Overflow - Google Chrome' - [ALT]	
+[08-10-2022 13:43:31] - 'Settings' - [ALT]	
+[08-10-2022 13:43:33] - 'Task Switching' - 	
+[08-10-2022 13:43:34] - 'Untitled - Paint' - [ALT]	
+[08-10-2022 13:43:37] - 'Task Switching' - 		
+[08-10-2022 13:43:37] - 'winkey.cpp - Tinky - Visual Studio Code' - [ALT]	
+[08-10-2022 13:43:41] - 'Task Switching' - 		
+[08-10-2022 13:43:52] - 'New Tab - Google Chrome' - [CTRL]getsyste[RIGHT ARROW] returns wrong 
+
+[08-10-2022 13:44:05] - 'getsystemmetrics returns wrong - Google Search - Google Chrome' - [ALT]	
+[08-10-2022 13:44:06] - 'winkey.cpp - Tinky - Visual Studio Code' - [ALT]	
+[08-10-2022 13:44:08] - 'Task Switching' - 			
+
+***ClipBoard Change*** : *[Non-Text Copy]*
+
+[08-10-2022 13:44:28] - 'Developer PowerShell Visual Studio Community 2022 17.3.32825.248' - [FN]
+[08-10-2022 13:44:30] - 'winkey.cpp - Tinky - Visual Studio Code' - [ALT]	[ALT]	
+[08-10-2022 13:44:44] - 'Task Switching' - 	
+[08-10-2022 13:44:45] - 'winapi - GetSystemMetrics() returns wrong value for SM_CXSCREEN - Stack Overflow - Google Chrome' - [CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL]
+[08-10-2022 13:44:56] - 'winapi - GetSystemMetrics() returns wrong value for SM_CXSCREEN - Stack Overflow - Google Chrome' - [CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL][CTRL]
+[08-10-2022 13:44:57] - 'winapi - GetSystemMetrics() returns wrong value for SM_CXSCREEN - Stack Overflow - Google Chrome' - [ALT]	
+[08-10-2022 13:44:58] - 'Task Switching' - 	
+
+***ClipBoard Change*** : *[Non-Text Copy]*
+
+
+***ClipBoard Change*** : *[Non-Text Copy]*
+
+[08-10-2022 13:46:18] - 'Developer PowerShell Visual Studio Community 2022 17.3.32825.248' - [FN]
+[08-10-2022 13:46:18] - '08-10-2022 13_46_08.jpg - Tinky - Visual Studio Code' - [ALT]	
+[08-10-2022 13:46:21] - 'Task Switching' - 	
+[08-10-2022 13:47:27] - 'winapi - GetSystemMetrics() returns wrong value for SM_CXSCREEN - Stack Overflow - Google Chrome' - [CTRL]	
+[08-10-2022 13:47:27] - 'SetProcessDPIAware function (winuser.h) - Win32 apps | Microsoft Learn - Google Chrome' - [ALT]	
+[08-10-2022 13:47:28] - 'Task Switching' - 			
+[08-10-2022 13:48:59] - 'Nass El Ghiwane - El majzara - Le grand carnage' -  
+[08-10-2022 13:49:00] - 'SetProcessDPIAware function (winuser.h) - Win32 apps | Microsoft Learn - Google Chrome' - [CTRL][SHIFT][SHIFT][SHIFT][SHIFT][SHIFT][SHIFT][SHIFT]
+[08-10-2022 13:49:25] - 'New Incognito Tab - Google Chrome' - etranf[DEL]ger a moi meme et a ce monde
+
+[08-10-2022 13:50:58] - 'etranger a moi meme et a ce monde - Google Search - Google Chrome' - [SHIFT]"[CTRL][LEFT ARROW][SHIFT]"
+
+
+***ClipBoard Change*** : *SetProcessDPIAware*
+
+[08-10-2022 13:50:59] - 'SetProcessDPIAware function (winuser.h) - Win32 apps | Microsoft Learn - Google Chrome' - [CTRL][ALT]	
+[08-10-2022 13:51:01] - 'Task Switching' - 	
+[08-10-2022 13:51:01] - '08-10-2022 13_46_08.jpg - Tinky - Visual Studio Code' - [ALT]	
+[08-10-2022 13:51:09] - 'Task Switching' - 						
+[08-10-2022 13:51:10] - 'winapi - GetSystemMetrics() returns wrong value for SM_CXSCREEN - Stack Overflow - Google Chrome' - [ALT]	
+[08-10-2022 13:51:20] - 'Task Switching' - 	[SHIFT]	
+[08-10-2022 13:51:26] - 'winkey.cpp - Tinky - Visual Studio Code' - 
+[CTRL][SHIFT]*([DEL][DEL]():[DEL];[ALT]	
+[08-10-2022 13:51:30] - 'winapi - GetSystemMetrics() returns wrong value for SM_CXSCREEN - Stack Overflow - Google Chrome' - [CTRL]	
+[08-10-2022 13:51:44] - 'SetProcessDPIAware function (winuser.h) - Win32 apps | Microsoft Learn - Google Chrome' - [CTRL][SHIFT]	
+[08-10-2022 13:51:45] - 'winapi - GetSystemMetrics() returns wrong value for SM_CXSCREEN - Stack Overflow - Google Chrome' - [ALT]	
+[08-10-2022 13:51:58] - 'winkey.cpp - Tinky - Visual Studio Code' - [CTRL][DEL][DEL]
+[CTRL][SHIFT]();[CTRL][CTRL][ALT]	
+[08-10-2022 13:51:59] - 'Task Switching' - 		
+
+***ClipBoard Change*** : *[Non-Text Copy]*
+
+[08-10-2022 13:52:18] - 'Developer PowerShell Visual Studio Community 2022 17.3.32825.248' - qw[FN]
+[08-10-2022 13:52:19] - '08-10-2022 13_52_11.jpg - Tinky - Visual Studio Code' - [ALT]	
+[08-10-2022 13:52:27] - 'Developer PowerShell Visual Studio Community 2022 17.3.32825.248' - [ALT]	
+[08-10-2022 13:52:28] - '08-10-2022 13_52_11.jpg - Tinky - Visual Studio Code' - [ALT]	
+
+***ClipBoard Change*** : *[Non-Text Copy]*
+
+[08-10-2022 13:53:36] - 'Developer PowerShell Visual Studio Community 2022 17.3.32825.248' - qw[FN]
+[08-10-2022 13:53:37] - '08-10-2022 13_53_23.jpg - Tinky - Visual Studio Code' - [ALT]	
+[08-10-2022 13:53:42] - 'Task Switching' - 	
+[08-10-2022 13:53:43] - 'c++ - How to replace all occurrences of a character in string? - Stack Overflow - Google Chrome' - [CTRL]
+[08-10-2022 13:53:45] - 'winapi - GetSystemMetrics() returns wrong value for SM_CXSCREEN - Stack Overflow - Google Chrome' - [SHIFT]	
+[08-10-2022 13:53:45] - 'c++ - Convert wchar_t to char - Stack Overflow - Google Chrome' - [ALT]	
+[08-10-2022 13:53:46] - 'Task Switching' - 	

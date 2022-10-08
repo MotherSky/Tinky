@@ -149,12 +149,16 @@ void	takeScreen(){
 	int x1, y1, x2, y2, w, h;
 
 	// get screen dimensions
+	::SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_SYSTEM_AWARE);
     x1  = GetSystemMetrics(SM_XVIRTUALSCREEN);
     y1  = GetSystemMetrics(SM_YVIRTUALSCREEN);
     x2  = GetSystemMetrics(SM_CXVIRTUALSCREEN);
     y2  = GetSystemMetrics(SM_CYVIRTUALSCREEN);
     w   = x2 - x1;
     h   = y2 - y1;
+
+
+	std::cout << x1 << ", " << x2 << ", " << y1 << ", " << y2 << ", " << std::endl;
 
 	// copy screen to bitmap
     HDC     hScreen = GetDC(NULL);
