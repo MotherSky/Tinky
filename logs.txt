@@ -94,3 +94,5 @@ git commit -m [SHIFT]"not s[DEL][DEL][DEL]w saves screen
 [08-10-2022 13:53:45] - 'winapi - GetSystemMetrics() returns wrong value for SM_CXSCREEN - Stack Overflow - Google Chrome' - [SHIFT]	
 [08-10-2022 13:53:45] - 'c++ - Convert wchar_t to char - Stack Overflow - Google Chrome' - [ALT]	
 [08-10-2022 13:53:46] - 'Task Switching' - 	
+[08-10-2022 14:01:31] - 'Developer PowerShell Visual Studio Community 2022 17.3.32825.248' - q[FN]
+[08-10-2022 14:01:35] - '08-10-2022 14_01_19.jpg - Tinky - Visual Studio Code' - [ALT]	

