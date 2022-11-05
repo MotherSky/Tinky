@@ -1,7 +1,0 @@
-[19-09-2022 23:31:44] - 'C:\WINDOWS\system32\cmd.exe' - q
-[19-09-2022 23:31:49] - 'C:\WINDOWS\system32\cmd.exe - winkey.exe' - wqwq
-
-***ClipBoard Change*** : *:429*
-
-[19-09-2022 23:31:49] - 'Select C:\WINDOWS\system32\cmd.exe - winkey.exe' - 
-
