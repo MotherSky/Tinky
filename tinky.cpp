@@ -81,7 +81,7 @@ int assign_scManager()
 
 // Create and install service tinky --- 
 
-int install_sc(char* path)
+int install_sc(void)
 {
 	SC_HANDLE scService = OpenService(scManager, SVCNAME, SERVICE_ALL_ACCESS);
 	if (scService)
@@ -92,7 +92,7 @@ int install_sc(char* path)
 	scService = CreateService(scManager, SVCNAME, SVCNAME,
 		SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
 		SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL,
-		path, NULL, NULL, NULL, NULL, NULL);
+		"C:\\tinky.exe", NULL, NULL, NULL, NULL, NULL);
 	if (!scService)
 	{
 		printf("CreateService failed error (%ld)\n", GetLastError());
@@ -127,6 +127,100 @@ int start_sc(void)
 	else
 		printf("Service %s is not installed.\n", SVCNAME);
 	return (0);
+}
+
+void stop_sc()
+{
+	SERVICE_STATUS_PROCESS ssp;
+	DWORD dwBytesNeeded;
+	DWORD dwStartTime = GetTickCount();
+	DWORD dwTimeout = 30000;
+	DWORD dwWaitTime;
+
+	SC_HANDLE scService = OpenService(scManager, SVCNAME, SERVICE_ALL_ACCESS);
+	if (scService == nullptr) {
+		return;
+	}
+	/* Check if service is started */
+	if (!QueryServiceStatusEx(
+		scService,
+		SC_STATUS_PROCESS_INFO,
+		(LPBYTE)&ssp,
+		sizeof(SERVICE_STATUS_PROCESS),
+		&dwBytesNeeded
+	)) {
+		printf("QueryServiceStatusEx failed (%ld)\n", GetLastError());
+		goto stop_cleanup;
+	}
+
+	if (ssp.dwCurrentState == SERVICE_STOPPED) {
+		printf("Service is already stopped\n");
+		goto stop_cleanup;
+	}
+
+	/* Wait for stoping service if pendind*/
+	while (ssp.dwCurrentState == SERVICE_STOP_PENDING) {
+		printf("Service stop pending...\n");
+		dwWaitTime = ssp.dwWaitHint / 10;
+		if (dwWaitTime < 1000)
+			dwWaitTime = 1000;
+		else if (dwWaitTime > 10000)
+			dwWaitTime = 10000;
+		Sleep(dwWaitTime);
+		if (!QueryServiceStatusEx(scService,
+			SC_STATUS_PROCESS_INFO,
+			(LPBYTE)&ssp,
+			sizeof(SERVICE_STATUS_PROCESS),
+			&dwBytesNeeded
+		)) {
+			printf("QueryServiceStatusEx failed %ld\n", GetLastError());
+			goto stop_cleanup;
+		}
+
+		if (ssp.dwCurrentState == SERVICE_STOPPED) {
+			printf("Service stopped successfully.\n");
+			goto stop_cleanup;
+		}
+
+		if (GetTickCount() - dwStartTime > dwTimeout) {
+			printf("Service stop timed out.\n");
+			goto stop_cleanup;
+		}
+	}
+	// send stop code
+	if (!ControlService(
+		scService,
+		SERVICE_CONTROL_STOP,
+		(LPSERVICE_STATUS)&ssp
+	)) {
+		printf("ControlService failed (%ld)\n", GetLastError());
+		goto stop_cleanup;
+	}
+	/* Wait service to stop */
+	while (ssp.dwCurrentState != SERVICE_STOPPED) {
+		Sleep(ssp.dwWaitHint);
+		if (!QueryServiceStatusEx(scService,
+			SC_STATUS_PROCESS_INFO,
+			(LPBYTE)&ssp,
+			sizeof(SERVICE_STATUS_PROCESS),
+			&dwBytesNeeded
+		)) {
+			printf("QueryServiceStatusEx failed (%ld)\n", GetLastError());
+			goto stop_cleanup;
+		}
+
+		if (ssp.dwCurrentState == SERVICE_STOPPED)
+			break;
+
+		if (GetTickCount() - dwStartTime > dwTimeout) {
+			printf("Wait timed out\n");
+			goto stop_cleanup;
+		}
+	}
+	printf("Service stopped successfully\n");
+
+stop_cleanup:
+	CloseServiceHandle(scService);
 }
 
 int delete_sc(void)
