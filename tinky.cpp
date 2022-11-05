@@ -26,7 +26,6 @@ HANDLE ServiceGetToken();
 void ServiceStartProcess(STARTUPINFO* si,
 	PROCESS_INFORMATION* pi);
 
-
 int usage(int ac, char** av)
 {
 	if (ac == 2 && (strcmp(av[1], "install")
@@ -60,9 +59,7 @@ int usage(int ac, char** av)
 			return (4);
 		}
 	}
-	else if (ac == 1)
-		return (0);
-	return (-1);
+	return (0);
 }
 
 int assign_scManager()
@@ -84,27 +81,30 @@ int assign_scManager()
 
 // Create and install service tinky --- 
 
-void install_sc()
+int install_sc(char* path)
 {
 	SC_HANDLE scService = OpenService(scManager, SVCNAME, SERVICE_ALL_ACCESS);
 	if (scService)
 	{
 		printf("Service %s exists.\n", SVCNAME);
+		return (1);
 	}
 	scService = CreateService(scManager, SVCNAME, SVCNAME,
 		SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
 		SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL,
-		"C:\\tinky.exe", NULL, NULL, NULL, NULL, NULL);
+		path, NULL, NULL, NULL, NULL, NULL);
 	if (!scService)
 	{
 		printf("CreateService failed error (%ld)\n", GetLastError());
+		return (1);
 	}
 	printf("Service %s installed successfully.\n", SVCNAME);
+	return (0);
 }
 
 //Start service // need dispatcher before start : https://stackoverflow.com/questions/1640114/startservice-fails-with-error-code-1053
 
-void start_sc(void)
+int start_sc(void)
 {
 	SC_HANDLE scService = OpenService(scManager, SVCNAME, SERVICE_ALL_ACCESS);
 	if (scService)
@@ -118,6 +118,7 @@ void start_sc(void)
 				printf("StartService failed error (%ld)\n", err);
 			if (!CloseServiceHandle(scService))
 				printf("CloseServiceHandle failed error (%ld)\n", err);
+			return (1);
 		}
 		printf("Service %s started successfully.\n", SVCNAME);
 		if (!CloseServiceHandle(scService))
@@ -125,108 +126,16 @@ void start_sc(void)
 	}
 	else
 		printf("Service %s is not installed.\n", SVCNAME);
+	return (0);
 }
 
-void stop_sc()
-{
-	SERVICE_STATUS_PROCESS ssp;
-	DWORD dwBytesNeeded;
-	DWORD dwStartTime = GetTickCount();
-	DWORD dwTimeout = 30000;
-	DWORD dwWaitTime;
-	
-	SC_HANDLE scService = OpenService(scManager, SVCNAME, SERVICE_ALL_ACCESS);
-	if (scService == nullptr) {
-		return;
-	}
-	/* Check if service is started */
-	if (!QueryServiceStatusEx(
-		scService,
-		SC_STATUS_PROCESS_INFO,
-		(LPBYTE)&ssp,
-		sizeof(SERVICE_STATUS_PROCESS),
-		&dwBytesNeeded
-	)) {
-		printf("QueryServiceStatusEx failed (%ld)\n", GetLastError());
-		goto stop_cleanup;
-	}
-
-	if (ssp.dwCurrentState == SERVICE_STOPPED) {
-		printf("Service is already stopped\n");
-		goto stop_cleanup;
-	}
-
-	/* Wait for stoping service if pendind*/
-	while (ssp.dwCurrentState == SERVICE_STOP_PENDING) {
-		printf("Service stop pending...\n");
-		dwWaitTime = ssp.dwWaitHint / 10;
-		if (dwWaitTime < 1000)
-			dwWaitTime = 1000;
-		else if (dwWaitTime > 10000)
-			dwWaitTime = 10000;
-		Sleep(dwWaitTime);
-		if (!QueryServiceStatusEx(scService,
-			SC_STATUS_PROCESS_INFO,
-			(LPBYTE)&ssp,
-			sizeof(SERVICE_STATUS_PROCESS),
-			&dwBytesNeeded
-		)) {
-			printf("QueryServiceStatusEx failed %ld\n", GetLastError());
-			goto stop_cleanup;
-		}
-
-		if (ssp.dwCurrentState == SERVICE_STOPPED) {
-			printf("Service stopped successfully.\n");
-			goto stop_cleanup;
-		}
-
-		if (GetTickCount() - dwStartTime > dwTimeout) {
-			printf("Service stop timed out.\n");
-			goto stop_cleanup;
-		}
-	}
-	// send stop code
-	if (!ControlService(
-		scService,
-		SERVICE_CONTROL_STOP,
-		(LPSERVICE_STATUS)&ssp
-	)) {
-		printf("ControlService failed (%ld)\n", GetLastError());
-		goto stop_cleanup;
-	}
-	/* Wait service to stop */
-	while (ssp.dwCurrentState != SERVICE_STOPPED) {
-		Sleep(ssp.dwWaitHint);
-		if (!QueryServiceStatusEx(scService,
-			SC_STATUS_PROCESS_INFO,
-			(LPBYTE)&ssp,
-			sizeof(SERVICE_STATUS_PROCESS),
-			&dwBytesNeeded
-		)) {
-			printf("QueryServiceStatusEx failed (%ld)\n", GetLastError());
-			goto stop_cleanup;
-		}
-
-		if (ssp.dwCurrentState == SERVICE_STOPPED)
-			break;
-
-		if (GetTickCount() - dwStartTime > dwTimeout) {
-			printf("Wait timed out\n");
-			goto stop_cleanup;
-		}
-	}
-	printf("Service stopped successfully\n");
-
-	stop_cleanup:
-		CloseServiceHandle(scService);
-}
-
-void delete_sc(void)
+int delete_sc(void)
 {
 	SC_HANDLE scService = OpenService(scManager, SVCNAME, SERVICE_ALL_ACCESS);
 	if (!scService)
 	{
 		printf("Service %s is not installed.\n", SVCNAME);
+		return (1);
 	}
 	SERVICE_STATUS	status;
 
@@ -241,6 +150,7 @@ void delete_sc(void)
 			else
 			{
 				printf("Service %s deleted successfully.\n", SVCNAME);
+				return (0);
 			}
 		}
 	}
@@ -248,6 +158,7 @@ void delete_sc(void)
 		printf("ControlService failed error (%ld)\n", GetLastError());
 	if (!CloseServiceHandle(scService))
 		printf("CloseServiceHandle failed error (%ld)\n", GetLastError());
+	return (1);
 }
 
 void do_op(int op)
