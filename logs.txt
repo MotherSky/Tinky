@@ -1,0 +1,10 @@
+[15-11-2022 06:22:31] - 'logs.txt - Tinky - Visual Studio Code' - [DEL][ALT]	
+[15-11-2022 06:22:38] - 'Developer PowerShell for VS 2022' - qwqwwqqwqwqqwqwqwqwqwqwqwqwqwqw[UP ARROW][DOWN ARROW][DOWN ARROW][UP ARROW][DOWN ARROW][UP ARROW][DOWN ARROW]
+[15-11-2022 06:22:44] - 'Developer PowerShell for VS 2022' - [UP ARROW][CTRL][DOWN ARROW][UP ARROW][DOWN ARROW][UP ARROW][DOWN ARROW][UP ARROW]
+[15-11-2022 06:23:03] - 'Developer PowerShell for VS 2022' - [DOWN ARROW][DOWN ARROW]
+
+***ClipBoard Change*** : *std::cout << "before keystate[ctrl]: " << lpKeyState[VK_CONTROL] << std::endl;*
+
+[15-11-2022 06:23:16] - 'winkey.cpp - Tinky - Visual Studio Code' - before [CTRL]
+[CTRL]aafter[CTRL][ALT]	
+[15-11-2022 06:23:46] - 'Developer PowerShell for VS 2022' - [CTRL]qqqqqwwwwqwqwqwwqqwqwqwwqqwqqwqwqwqwqwqwqwqwqwqwqwqwqwqwwqwqwwqwqwqwqwqwqw[DOWN ARROW][UP ARROW]

