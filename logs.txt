@@ -8,3 +8,94 @@
 [15-11-2022 06:23:16] - 'winkey.cpp - Tinky - Visual Studio Code' - before [CTRL]
 [CTRL]aafter[CTRL][ALT]	
 [15-11-2022 06:23:46] - 'Developer PowerShell for VS 2022' - [CTRL]qqqqqwwwwqwqwqwwqqwqwqwwqqwqqwqwqwqwqwqwqwqwqwqwqwqwqwqwwqwqwwqwqwqwqwqwqw[DOWN ARROW][UP ARROW]
+[20-11-2022 15:15:53] - 'Developer PowerShell for VS 2022' - qwqw
+[20-11-2022 15:15:55] - 'logs.txt - Tinky - Visual Studio Code' - [ALT][ALT]	
+[20-11-2022 15:15:56] - 'Developer PowerShell for VS 2022' - [LEFT ARROW][UP ARROW][RIGHT ARROW][RIGHT ARROW][LEFT ARROW][UP ARROW][DOWN ARROW][LEFT ARROW][RIGHT ARROW]
+[20-11-2022 15:16:02] - 'Developer PowerShell for VS 2022' - [LEFT ARROW][DOWN ARROW][UP ARROW]
+[20-11-2022 15:16:09] - 'logs.txt - Tinky - Visual Studio Code' - [ALT]	
+
+***ClipBoard Change*** : *[Non-Text Copy]*
+
+
+***ClipBoard Change*** : *[Non-Text Copy]*
+
+
+***ClipBoard Change*** : *[Non-Text Copy]*
+
+
+***ClipBoard Change*** : *[Non-Text Copy]*
+
+
+***ClipBoard Change*** : *[Non-Text Copy]*
+
+[20-11-2022 15:16:34] - 'Developer PowerShell for VS 2022' - [PRINT SCREEN][PRINT SCREEN][PRINT SCREEN][PRINT SCREEN][PRINT SCREEN]
+[20-11-2022 15:16:38] - 'logs.txt - Tinky - Visual Studio Code' - [CTRL]f
+[20-11-2022 15:16:57] - 'winkey.cpp - Tinky - Visual Studio Code' - [CTRL]ftakescre[DEL]
+std[SHIFT]::C[DEL]cout [SHIFT]<< "Hello[RIGHT ARROW] [SHIFT]<< std[SHIFT]::endl
+[20-11-2022 15:17:02] - 'winkey.cpp - Tinky - Visual Studio Code' - ;;[DEL][CTRL]s[ALT]	
+[20-11-2022 15:17:17] - 'Developer PowerShell for VS 2022' - q
+[20-11-2022 15:17:19] - 'logs.txt - Tinky - Visual Studio Code' - [ALT]	
+[20-11-2022 15:17:20] - 'Developer PowerShell for VS 2022' - [RIGHT ARROW][LEFT ARROW][UP ARROW][LEFT ARROW][RIGHT ARROW][DOWN ARROW][UP ARROW][RIGHT ARROW][DOWN ARROW]
+
+***ClipBoard Change*** : *[Non-Text Copy]*
+
+
+***ClipBoard Change*** : *[Non-Text Copy]*
+
+
+***ClipBoard Change*** : *[Non-Text Copy]*
+
+
+***ClipBoard Change*** : *[Non-Text Copy]*
+
+
+***ClipBoard Change*** : *[Non-Text Copy]*
+
+[20-11-2022 15:18:06] - 'Developer PowerShell for VS 2022' - [LEFT ARROW][UP ARROW][PRINT SCREEN][PRINT SCREEN][PRINT SCREEN][PRINT SCREEN][PRINT SCREEN]
+[20-11-2022 15:18:09] - 'winkey.cpp - Tinky - Visual Studio Code' - [ALT]	
+[20-11-2022 15:18:28] - 'Developer PowerShell for VS 2022' - [FN][FN][FN][FN][FN][FN]
+[20-11-2022 15:18:34] - 'winkey.cpp - Tinky - Visual Studio Code' - [DEL][DEL][FN][CTRL]s[ALT]	
+[20-11-2022 15:18:53] - 'Developer PowerShell for VS 2022' - [FN]
+[20-11-2022 15:19:34] - 'winkey.cpp - Tinky - Visual Studio Code' - [FN]
+[20-11-2022 15:19:39] - 'Search' - pa[FN]
+
+[20-11-2022 15:20:47] - 'Untitled - Paint' - [CTRL]v
+[20-11-2022 15:21:16] - 'winkey.cpp - Tinky - Visual Studio Code' - [DEL][DEL][DEL][CTRL]s[DEL]//[DEL][DEL][CTRL]ss[ALT]	
+[20-11-2022 15:21:16] - 'Developer PowerShell for VS 2022' - [ALT]	
+[20-11-2022 15:21:18] - 'Task Switching' - 	
+[20-11-2022 15:21:32] - 'Developer PowerShell for VS 2022' - [UP ARROW]
+[UP ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW]
+[20-11-2022 15:21:33] - 'Developer PowerShell for VS 2022' - [LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW]
+[20-11-2022 15:21:33] - 'Developer PowerShell for VS 2022' - [LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW]
+[20-11-2022 15:21:34] - 'Developer PowerShell for VS 2022' - [LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW][LEFT ARROW]
+[20-11-2022 15:21:38] - 'Developer PowerShell for VS 2022' - [LEFT ARROW]/[SHIFT][SHIFT][SHIFT][SHIFT][SHIFT][SHIFT][SHIFT][SHIFT][SHIFT][SHIFT][SHIFT][SHIFT]EHs
+[20-11-2022 15:22:18] - 'Developer PowerShell for VS 2022' - c 
+
+[20-11-2022 15:22:19] - 'winkey.cpp - Tinky - Visual Studio Code' - [ALT]	
+[20-11-2022 15:22:19] - 'Developer PowerShell for VS 2022' - [ALT]	
+[20-11-2022 15:22:22] - 'Task Switching' - 	
+[20-11-2022 15:22:32] - 'Developer PowerShell for VS 2022' - cls
+[UP ARROW][UP ARROW][DEL][DEL][DEL][DEL][DEL][DEL][DEL][DEL][DEL][DEL][DEL][DEL][DEL][DEL][DEL][DEL]
+[20-11-2022 15:22:44] - 'Developer PowerShell for VS 2022' - [DEL][DEL][DEL][DEL][DEL][DEL][DEL]
+
+[20-11-2022 15:23:00] - 'winkey.cpp - Tinky - Visual Studio Code' - notes
+
+[20-11-2022 15:23:04] - 'notes - Tinky - Visual Studio Code' - 37[ALT]	
+[20-11-2022 15:23:15] - 'Developer PowerShell for VS 2022' - [UP ARROW][UP ARROW][UP ARROW]
+[UP ARROW][UP ARROW][DOWN ARROW][UP ARROW][UP ARROW]
+[UP ARROW][UP ARROW]
+[20-11-2022 15:23:19] - 'Developer PowerShell for VS 2022' - [UP ARROW]
+
+[20-11-2022 15:23:29] - 'notes - Tinky - Visual Studio Code' - [DEL]82[ALT]	
+[20-11-2022 15:25:39] - 'Find' - winkey.cpp
+
+
+***ClipBoard Change*** : *_CRT_SECURE_NO_WARNINGS*
+
+[20-11-2022 15:25:40] - 'Select Developer PowerShell for VS 2022' - 
+
+[20-11-2022 15:25:47] - 'Developer PowerShell for VS 2022' - [ALT]	
+[20-11-2022 15:25:52] - 'winkey.cpp - Tinky - Visual Studio Code' - 
+[UP ARROW][SHIFT]#[CTRL]v[CTRL]s[ALT]	
+[20-11-2022 15:25:53] - 'Developer PowerShell for VS 2022' - [ALT]	
+[20-11-2022 15:25:54] - 'Task Switching' - 	
