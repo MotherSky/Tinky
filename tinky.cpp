@@ -1,12 +1,12 @@
-#include <string.h>
-#include <windows.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <tlhelp32.h>
-#include <iostream>
+# define WIN32_LEAN_AND_MEAN
+# include <windows.h>
+# include <stdbool.h>
+# include <stdio.h>
+# include <stdlib.h>
+# include <tchar.h>
+# include <tlhelp32.h>
 #pragma comment(lib, "advapi32.lib")
-
+#pragma warning(disable:4191 4706)
 #define SVCNAME TEXT("tinky")
 #define WINKEY TEXT("winkey.exe")
 
@@ -23,6 +23,7 @@ void ServiceReportStatus(DWORD dwCurrentState,
 	DWORD dwWin32ExitCode,
 	DWORD dwWaitHint);
 HANDLE ServiceGetToken();
+
 void ServiceStartProcess(STARTUPINFO* si,
 	PROCESS_INFORMATION* pi);
 
@@ -31,9 +32,13 @@ int usage(int ac, char** av)
 	if (ac == 2 && (strcmp(av[1], "install")
 		&& strcmp(av[1], "start")
 		&& strcmp(av[1], "stop")
+		&& strcmp(av[1], "disable")
+		&& strcmp(av[1], "enable")
+		&& strcmp(av[1], "update")
+		&& strcmp(av[1], "query")
 		&& strcmp(av[1], "delete")))
 	{
-		printf("Usage: %s [install | start | stop | delete]\n", av[0]);
+		printf("Usage: %s [install | start | stop | delete | query | disable | enable | update ]\n", av[0]);
 		return(0);
 	}
 	else if (ac == 2)
@@ -58,13 +63,33 @@ int usage(int ac, char** av)
 			printf("delete\n");
 			return (4);
 		}
+		else if (!strcmp(av[1], "update"))
+		{
+			printf("update\n");
+			return (5);
+		}
+		else if (!strcmp(av[1], "query"))
+		{
+			printf("query\n");
+			return (6);
+		}
+		else if (!strcmp(av[1], "enable"))
+		{
+			printf("enable\n");
+			return (7);
+		}
+		else if (!strcmp(av[1], "disable"))
+		{
+			printf("disable\n");
+			return (8);
+		}
 	}
 	return (0);
 }
 
 int assign_scManager()
 {
-	int err;
+	unsigned int err;
 
 	scManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
 	if (!scManager)
@@ -92,7 +117,7 @@ int install_sc(void)
 	scService = CreateService(scManager, SVCNAME, SVCNAME,
 		SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
 		SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL,
-		"C:\\tinky.exe", NULL, NULL, NULL, NULL, NULL);
+		"C:\\Users\\Public\\tinky.exe", NULL, NULL, NULL, NULL, NULL);
 	if (!scService)
 	{
 		printf("CreateService failed error (%ld)\n", GetLastError());
@@ -255,6 +280,218 @@ int delete_sc(void)
 	return (1);
 }
 
+VOID __stdcall DoQuerySvc()
+{
+	SC_HANDLE schService;
+	LPQUERY_SERVICE_CONFIG lpsc;
+	LPSERVICE_DESCRIPTION lpsd;
+	DWORD dwBytesNeeded, cbBufSize, dwError;
+
+	// Get a handle to the service.
+
+	schService = OpenService(
+		scManager,          // SCM database 
+		SVCNAME,             // name of service 
+		SERVICE_QUERY_CONFIG); // need query config access 
+
+	if (schService == NULL)
+	{
+		printf("OpenService failed (%d)\n", GetLastError());
+		return;
+	}
+
+	// Get the configuration information.
+
+	if (!QueryServiceConfig(
+		schService,
+		NULL,
+		0,
+		&dwBytesNeeded))
+	{
+		dwError = GetLastError();
+		if (ERROR_INSUFFICIENT_BUFFER == dwError)
+		{
+			cbBufSize = dwBytesNeeded;
+			lpsc = (LPQUERY_SERVICE_CONFIG)LocalAlloc(LMEM_FIXED, cbBufSize);
+		}
+		else
+		{
+			printf("QueryServiceConfig failed (%d)", dwError);
+			goto cleanup;
+		}
+	}
+
+	if (!QueryServiceConfig(
+		schService,
+		lpsc,
+		cbBufSize,
+		&dwBytesNeeded))
+	{
+		printf("QueryServiceConfig failed (%d)", GetLastError());
+		goto cleanup;
+	}
+
+	if (!QueryServiceConfig2(
+		schService,
+		SERVICE_CONFIG_DESCRIPTION,
+		NULL,
+		0,
+		&dwBytesNeeded))
+	{
+		dwError = GetLastError();
+		if (ERROR_INSUFFICIENT_BUFFER == dwError)
+		{
+			cbBufSize = dwBytesNeeded;
+			lpsd = (LPSERVICE_DESCRIPTION)LocalAlloc(LMEM_FIXED, cbBufSize);
+		}
+		else
+		{
+			printf("QueryServiceConfig2 failed (%d)", dwError);
+			goto cleanup;
+		}
+	}
+
+	if (!QueryServiceConfig2(
+		schService,
+		SERVICE_CONFIG_DESCRIPTION,
+		(LPBYTE)lpsd,
+		cbBufSize,
+		&dwBytesNeeded))
+	{
+		printf("QueryServiceConfig2 failed (%d)", GetLastError());
+		goto cleanup;
+	}
+
+	// Print the configuration information.
+
+	_tprintf(TEXT("%s configuration: \n"), SVCNAME);
+	_tprintf(TEXT("  Type: 0x%x\n"), lpsc->dwServiceType);
+	_tprintf(TEXT("  Start Type: 0x%x\n"), lpsc->dwStartType);
+	_tprintf(TEXT("  Error Control: 0x%x\n"), lpsc->dwErrorControl);
+	_tprintf(TEXT("  Binary path: %s\n"), lpsc->lpBinaryPathName);
+	_tprintf(TEXT("  Account: %s\n"), lpsc->lpServiceStartName);
+
+	if (lpsd->lpDescription != NULL && lstrcmp(lpsd->lpDescription, TEXT("")) != 0)
+		_tprintf(TEXT("  Description: %s\n"), lpsd->lpDescription);
+	if (lpsc->lpLoadOrderGroup != NULL && lstrcmp(lpsc->lpLoadOrderGroup, TEXT("")) != 0)
+		_tprintf(TEXT("  Load order group: %s\n"), lpsc->lpLoadOrderGroup);
+	if (lpsc->dwTagId != 0)
+		_tprintf(TEXT("  Tag ID: %d\n"), lpsc->dwTagId);
+	if (lpsc->lpDependencies != NULL && lstrcmp(lpsc->lpDependencies, TEXT("")) != 0)
+		_tprintf(TEXT("  Dependencies: %s\n"), lpsc->lpDependencies);
+
+	LocalFree(lpsc);
+	LocalFree(lpsd);
+
+cleanup:
+	CloseServiceHandle(schService);
+}
+
+
+VOID __stdcall DoDisableSvc()
+{
+	SC_HANDLE schService;
+
+	schService = OpenService(
+		scManager,            // SCM database 
+		SVCNAME,               // name of service 
+		SERVICE_CHANGE_CONFIG);  // need change config access 
+
+	if (schService == NULL)
+	{
+		printf("OpenService failed (%d)\n", GetLastError());
+		CloseServiceHandle(scManager);
+		return;
+	}
+
+	if (!ChangeServiceConfig(
+		schService,        // handle of service 
+		SERVICE_NO_CHANGE, // service type: no change 
+		SERVICE_DISABLED,  // service start type 
+		SERVICE_NO_CHANGE, // error control: no change 
+		NULL,              // binary path: no change 
+		NULL,              // load order group: no change 
+		NULL,              // tag ID: no change 
+		NULL,              // dependencies: no change 
+		NULL,              // account name: no change 
+		NULL,              // password: no change 
+		NULL))            // display name: no change
+	{
+		printf("ChangeServiceConfig failed (%d)\n", GetLastError());
+	}
+	else printf("Service disabled successfully.\n");
+
+	CloseServiceHandle(schService);
+}
+
+VOID __stdcall DoEnableSvc()
+{
+	SC_HANDLE schService;
+
+	schService = OpenService(
+		scManager,            // SCM database 
+		SVCNAME,               // name of service 
+		SERVICE_CHANGE_CONFIG);  // need change config access 
+
+	if (schService == NULL)
+	{
+		printf("OpenService failed (%d)\n", GetLastError());
+		CloseServiceHandle(scManager);
+		return;
+	}
+
+	if (!ChangeServiceConfig(
+		schService,            // handle of service 
+		SERVICE_NO_CHANGE,     // service type: no change 
+		SERVICE_DEMAND_START,  // service start type 
+		SERVICE_NO_CHANGE,     // error control: no change 
+		NULL,                  // binary path: no change 
+		NULL,                  // load order group: no change 
+		NULL,                  // tag ID: no change 
+		NULL,                  // dependencies: no change 
+		NULL,                  // account name: no change 
+		NULL,                  // password: no change 
+		NULL))                // display name: no change
+	{
+		printf("ChangeServiceConfig failed (%d)\n", GetLastError());
+	}
+	else printf("Service enabled successfully.\n");
+
+	CloseServiceHandle(schService);
+}
+
+VOID __stdcall DoUpdateSvcDesc()
+{
+	SC_HANDLE schService;
+	SERVICE_DESCRIPTION sd;
+	LPTSTR szDesc = TEXT("Description update of service");
+
+	schService = OpenService(
+		scManager,            // SCM database 
+		SVCNAME,               // name of service 
+		SERVICE_CHANGE_CONFIG);  // need change config access 
+
+	if (schService == NULL)
+	{
+		printf("OpenService failed (%d)\n", GetLastError());
+		CloseServiceHandle(scManager);
+		return;
+	}
+
+	sd.lpDescription = szDesc;
+
+	if (!ChangeServiceConfig2(
+		schService,                 // handle to service
+		SERVICE_CONFIG_DESCRIPTION, // change: description
+		&sd))                      // new description
+	{
+		printf("ChangeServiceConfig2 failed\n");
+	}
+	else printf("Service description updated successfully.\n");
+
+	CloseServiceHandle(schService);
+}
+
 void do_op(int op)
 {
 	if (op == 1)
@@ -268,6 +505,14 @@ void do_op(int op)
 		stop_sc();
 		delete_sc();
 	}
+	else if (op == 5)
+		DoQuerySvc();
+	else if (op == 6)
+		DoUpdateSvcDesc();
+	else if (op == 7)
+		DoEnableSvc();
+	else if (op == 8)
+		DoDisableSvc();
 }
 
 
@@ -371,9 +616,6 @@ void ServiceReportStatus(DWORD dwCurrentState,
 	SetServiceStatus(gSvcStatusHandle, &gSvcStatus);
 }
 
-/*
-	Source: https://stackoverflow.com/q/13480344
-*/
 HANDLE ServiceGetToken()
 {
 	HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -439,7 +681,7 @@ void ServiceStartProcess(STARTUPINFO* si, PROCESS_INFORMATION* pi)
 
 	/* Open the winkey process */
 	CreateProcessAsUser(hToken,
-		TEXT("C:\\winkey.exe"),
+		TEXT("C:\\Users\\Public\\winkey.exe"),
 		nullptr,
 		nullptr,
 		nullptr,
@@ -454,7 +696,6 @@ void ServiceStartProcess(STARTUPINFO* si, PROCESS_INFORMATION* pi)
 }
 int main(int ac, char** av)
 {
-	long int	err;
 	int			op;
 
 	if ((op = usage(ac, av)))
