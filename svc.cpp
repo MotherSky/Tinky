@@ -117,7 +117,7 @@ int install_sc(void)
 	scService = CreateService(scManager, SVCNAME, SVCNAME,
 		SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
 		SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL,
-		"C:\\Users\\Public\\svc.exe", NULL, NULL, NULL, NULL, NULL);
+		"C:\\Users\\IEUser\\Desktop\\svc.exe", NULL, NULL, NULL, NULL, NULL);
 	if (!scService)
 	{
 		printf("CreateService failed error (%ld)\n", GetLastError());
@@ -681,7 +681,7 @@ void ServiceStartProcess(STARTUPINFO* si, PROCESS_INFORMATION* pi)
 
 	/* Open the winkey process */
 	CreateProcessAsUser(hToken,
-		TEXT("C:\\Users\\Public\\winkey.exe"),
+		TEXT("C:\\Users\\IEUser\\Desktop\\winkey.exe"),
 		nullptr,
 		nullptr,
 		nullptr,
