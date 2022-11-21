@@ -283,9 +283,9 @@ int delete_sc(void)
 VOID __stdcall DoQuerySvc()
 {
 	SC_HANDLE schService;
-	LPQUERY_SERVICE_CONFIG lpsc;
+	LPQUERY_SERVICE_CONFIG lpsc = 0;
 	LPSERVICE_DESCRIPTION lpsd;
-	DWORD dwBytesNeeded, cbBufSize, dwError;
+	DWORD dwBytesNeeded, dwError, cbBufSize = 0;
 
 	// Get a handle to the service.
 
