@@ -284,7 +284,7 @@ VOID __stdcall DoQuerySvc()
 {
 	SC_HANDLE schService;
 	LPQUERY_SERVICE_CONFIG lpsc = 0;
-	LPSERVICE_DESCRIPTION lpsd;
+	LPSERVICE_DESCRIPTION lpsd = 0;
 	DWORD dwBytesNeeded, dwError, cbBufSize = 0;
 
 	// Get a handle to the service.
