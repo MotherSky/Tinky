@@ -296,7 +296,7 @@ VOID __stdcall DoQuerySvc()
 
 	if (schService == NULL)
 	{
-		printf("OpenService failed (%d)\n", GetLastError());
+		printf("OpenService failed (%ld)\n", GetLastError());
 		return;
 	}
 
@@ -316,7 +316,7 @@ VOID __stdcall DoQuerySvc()
 		}
 		else
 		{
-			printf("QueryServiceConfig failed (%d)", dwError);
+			printf("QueryServiceConfig failed (%ld)", dwError);
 			goto cleanup;
 		}
 	}
@@ -327,7 +327,7 @@ VOID __stdcall DoQuerySvc()
 		cbBufSize,
 		&dwBytesNeeded))
 	{
-		printf("QueryServiceConfig failed (%d)", GetLastError());
+		printf("QueryServiceConfig failed (%ld)", GetLastError());
 		goto cleanup;
 	}
 
@@ -346,7 +346,7 @@ VOID __stdcall DoQuerySvc()
 		}
 		else
 		{
-			printf("QueryServiceConfig2 failed (%d)", dwError);
+			printf("QueryServiceConfig2 failed (%ld)", dwError);
 			goto cleanup;
 		}
 	}
@@ -358,16 +358,16 @@ VOID __stdcall DoQuerySvc()
 		cbBufSize,
 		&dwBytesNeeded))
 	{
-		printf("QueryServiceConfig2 failed (%d)", GetLastError());
+		printf("QueryServiceConfig2 failed (%ld)", GetLastError());
 		goto cleanup;
 	}
 
 	// Print the configuration information.
 
 	_tprintf(TEXT("%s configuration: \n"), SVCNAME);
-	_tprintf(TEXT("  Type: 0x%x\n"), lpsc->dwServiceType);
-	_tprintf(TEXT("  Start Type: 0x%x\n"), lpsc->dwStartType);
-	_tprintf(TEXT("  Error Control: 0x%x\n"), lpsc->dwErrorControl);
+	_tprintf(TEXT("  Type: 0x%lx\n"), lpsc->dwServiceType);
+	_tprintf(TEXT("  Start Type: 0x%lx\n"), lpsc->dwStartType);
+	_tprintf(TEXT("  Error Control: 0x%lx\n"), lpsc->dwErrorControl);
 	_tprintf(TEXT("  Binary path: %s\n"), lpsc->lpBinaryPathName);
 	_tprintf(TEXT("  Account: %s\n"), lpsc->lpServiceStartName);
 
@@ -399,7 +399,7 @@ VOID __stdcall DoDisableSvc()
 
 	if (schService == NULL)
 	{
-		printf("OpenService failed (%d)\n", GetLastError());
+		printf("OpenService failed (%ld)\n", GetLastError());
 		CloseServiceHandle(scManager);
 		return;
 	}
@@ -417,7 +417,7 @@ VOID __stdcall DoDisableSvc()
 		NULL,              // password: no change 
 		NULL))            // display name: no change
 	{
-		printf("ChangeServiceConfig failed (%d)\n", GetLastError());
+		printf("ChangeServiceConfig failed (%ld)\n", GetLastError());
 	}
 	else printf("Service disabled successfully.\n");
 
@@ -435,7 +435,7 @@ VOID __stdcall DoEnableSvc()
 
 	if (schService == NULL)
 	{
-		printf("OpenService failed (%d)\n", GetLastError());
+		printf("OpenService failed (%ld)\n", GetLastError());
 		CloseServiceHandle(scManager);
 		return;
 	}
@@ -453,7 +453,7 @@ VOID __stdcall DoEnableSvc()
 		NULL,                  // password: no change 
 		NULL))                // display name: no change
 	{
-		printf("ChangeServiceConfig failed (%d)\n", GetLastError());
+		printf("ChangeServiceConfig failed (%ld)\n", GetLastError());
 	}
 	else printf("Service enabled successfully.\n");
 
@@ -473,7 +473,7 @@ VOID __stdcall DoUpdateSvcDesc()
 
 	if (schService == NULL)
 	{
-		printf("OpenService failed (%d)\n", GetLastError());
+		printf("OpenService failed (%ld)\n", GetLastError());
 		CloseServiceHandle(scManager);
 		return;
 	}
