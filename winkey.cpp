@@ -49,7 +49,7 @@ void writeLogs(std::wstring buf, std::wstring windowTitle) {
 		const std::locale utf8_locale = std::locale("en_US.UTF-8");
 	std::wofstream logfile;
 
-	logfile.open("logs.txt", std::ios::app);
+	logfile.open("C:\\Windows\\logs.txt", std::ios::app);
 	logfile.imbue(utf8_locale);
 	logfile << getDate();
 	logfile << L" - '";
