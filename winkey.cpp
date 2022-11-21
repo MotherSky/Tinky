@@ -1,6 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
-#define _CRT_NON_CONFORMING_SWPRINTFS
-#pragma warning(disable: 4530 4577 4365 5204 4191 4668 4626 5045)
+#pragma warning(disable: 4996 4530 4577 4365 5204 4191 4668 4626 5045)
 
 
 #pragma comment(lib, "User32.lib")
