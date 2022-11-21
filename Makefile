@@ -18,3 +18,5 @@ clean:
 
 fclean: clean
 	del winkey.exe svc.exe
+	
+re: fclean all
