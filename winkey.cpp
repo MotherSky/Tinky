@@ -1,4 +1,4 @@
-#pragma warning(disable: 4996 4530 4577 4365 5204 4191 4668 4626 5045)
+#pragma warning(disable: 4996 4530 4577 4365 5204 4191 4668 4626 5045 5264)
 
 #include <iostream>
 #include <windows.h>
