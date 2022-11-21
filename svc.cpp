@@ -376,7 +376,7 @@ VOID __stdcall DoQuerySvc()
 	if (lpsc->lpLoadOrderGroup != NULL && lstrcmp(lpsc->lpLoadOrderGroup, TEXT("")) != 0)
 		_tprintf(TEXT("  Load order group: %s\n"), lpsc->lpLoadOrderGroup);
 	if (lpsc->dwTagId != 0)
-		_tprintf(TEXT("  Tag ID: %d\n"), lpsc->dwTagId);
+		_tprintf(TEXT("  Tag ID: %ld\n"), lpsc->dwTagId);
 	if (lpsc->lpDependencies != NULL && lstrcmp(lpsc->lpDependencies, TEXT("")) != 0)
 		_tprintf(TEXT("  Dependencies: %s\n"), lpsc->lpDependencies);
 
